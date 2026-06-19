@@ -1,0 +1,27 @@
+Content-Type: multipart/mixed; boundary="===============3700092117582972924=="
+MIME-Version: 1.0
+From: Arjun Menon <arjun.menon@hawkins.com>
+To: Neeraj Sharma <neeraj.sharma@hawkins.com>
+Subject: Project Horizon - ERP assessment findings
+Date: 2025-07-15
+
+--===============3700092117582972924==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Neeraj,
+
+The ERP assessment (Audit AUD006) for Project Horizon is complete.
+
+Recommendation: SAP S/4HANA upgrade over Oracle ERP
+Estimated cost: Rs 85,00,000
+Implementation timeline: 18 months
+
+The AI Knowledge Assistant sub-project is progressing well - intern Sambodh Gupta is building the prototype using LLaMA 3.1:8b with ChromaDB for local vector search. No data leaves the network.
+
+Will present to leadership next month.
+
+Regards,
+Arjun Menon
+--===============3700092117582972924==--

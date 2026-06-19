@@ -1,0 +1,25 @@
+Content-Type: multipart/mixed; boundary="===============5231312634919421924=="
+MIME-Version: 1.0
+From: Suresh Kumar <suresh.kumar@hawkins.com>
+To: Priya Mehta <priya.mehta@hawkins.com>
+Subject: Thane Plant - Line 2 recalibration completed
+Date: 2025-02-22
+
+--===============5231312634919421924==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Priya,
+
+Line 2 coating oven recalibration has been completed as requested following the Contura batch HC-2025-012 QC alert.
+
+Temperature variance: Reduced from 8 degrees to within 1.5 degrees of spec.
+Test run completed: 50 units - 0 defects found.
+Line 2 is cleared for full production.
+
+Batch hold on HC-2025-012 (6 affected units) has been quarantined for rework.
+
+Regards,
+Suresh Kumar
+--===============5231312634919421924==--

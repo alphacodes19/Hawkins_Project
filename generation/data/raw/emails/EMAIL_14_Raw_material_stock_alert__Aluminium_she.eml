@@ -1,0 +1,26 @@
+Content-Type: multipart/mixed; boundary="===============6621590421612634350=="
+MIME-Version: 1.0
+From: Suresh Kumar <suresh.kumar@hawkins.com>
+To: Rohit Desai <rohit.desai@hawkins.com>
+Subject: Raw material stock alert - Aluminium sheets running low
+Date: 2025-03-05
+
+--===============6621590421612634350==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Rohit,
+
+Urgent stock alert from Thane plant.
+
+Current aluminium sheet stock: 8 days of production remaining.
+Vendor: SteelForm Industries (V002)
+Last order: INV-2025-0034 (delivered Feb 3)
+Required: Minimum 30-day buffer stock
+
+Please raise a purchase order immediately to avoid production stoppage.
+
+Regards,
+Suresh Kumar
+--===============6621590421612634350==--
