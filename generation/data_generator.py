@@ -44,6 +44,7 @@ EXP  = WB["export_markets"]
 CB   = WB["cookbooks_manuals"]
 GP   = WB["gift_packs"]
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # HELPER UTILITIES
 # ─────────────────────────────────────────────────────────────────────────────
@@ -67,14 +68,36 @@ def rand_date(start="2024-01-01", end="2025-12-31"):
 # PDF GENERATOR
 # ─────────────────────────────────────────────────────────────────────────────
 
+def safe_text(s, max_len=300):
+    """Clean text so fpdf2 never chokes on it: strip weird unicode, collapse long unbroken words."""
+    if not s:
+        return ""
+    s = str(s).strip()
+    # Replace problem characters fpdf2's core font can't render
+    s = (s.replace("\u2018", "'").replace("\u2019", "'")
+           .replace("\u201c", '"').replace("\u201d", '"')
+           .replace("\u2013", "-").replace("\u2014", "-")
+           .replace("\u2026", "..."))
+    s = s.encode("latin-1", "ignore").decode("latin-1")
+    # Break up any single "word" longer than 40 chars so multi_cell can wrap it
+    words = s.split(" ")
+    fixed_words = []
+    for w in words:
+        if len(w) > 40:
+            w = " ".join(w[i:i+40] for i in range(0, len(w), 40))
+        fixed_words.append(w)
+    s = " ".join(fixed_words)
+    return s[:max_len] if max_len else s
+
+
 class HawkinsPDF(FPDF):
     def header(self):
         self.set_font("Helvetica", "B", 10)
         self.set_text_color(180, 30, 30)
-        self.cell(0, 8, CO["name"], ln=True)
+        self.cell(0, 8, safe_text(CO["name"], 100), new_x="LMARGIN", new_y="NEXT")
         self.set_text_color(0, 0, 0)
         self.set_font("Helvetica", "", 8)
-        self.cell(0, 5, CO["registered_office"], ln=True)
+        self.cell(0, 5, safe_text(CO["registered_office"], 150), new_x="LMARGIN", new_y="NEXT")
         self.ln(2)
         self.set_draw_color(180, 30, 30)
         self.set_line_width(0.5)
@@ -85,29 +108,30 @@ class HawkinsPDF(FPDF):
         self.set_y(-15)
         self.set_font("Helvetica", "I", 8)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 10, f"Page {self.page_no()} | {CO['name']} — Confidential", align="C")
+        self.cell(0, 10, safe_text(f"Page {self.page_no()} | {CO['name']} - Confidential", 150), align="C")
 
     def title_block(self, title, subtitle="", date=""):
         self.set_font("Helvetica", "B", 14)
         self.set_text_color(30, 30, 30)
         self.set_x(self.l_margin)
-        self.multi_cell(0, 8, title, align="C")
+        self.multi_cell(0, 8, safe_text(title, 200), align="L")
         if subtitle:
             self.set_font("Helvetica", "I", 11)
             self.set_text_color(80, 80, 80)
             self.set_x(self.l_margin)
-            self.multi_cell(0, 6, subtitle, align="C")
+            self.multi_cell(0, 6, safe_text(subtitle, 200), align="L")
         if date:
             self.set_font("Helvetica", "", 9)
             self.set_text_color(100, 100, 100)
             self.set_x(self.l_margin)
-            self.cell(0, 6, f"Date: {date}", ln=True, align="C")
+            self.cell(0, 6, safe_text(f"Date: {date}", 100), new_x="LMARGIN", new_y="NEXT", align="L")
         self.ln(4)
 
     def section(self, heading):
         self.set_font("Helvetica", "B", 11)
         self.set_text_color(180, 30, 30)
-        self.cell(0, 7, heading, ln=True)
+        self.set_x(self.l_margin)
+        self.cell(0, 7, safe_text(heading, 150), new_x="LMARGIN", new_y="NEXT")
         self.set_draw_color(180, 30, 30)
         self.set_line_width(0.3)
         self.line(10, self.get_y(), 200, self.get_y())
@@ -117,19 +141,22 @@ class HawkinsPDF(FPDF):
     def body(self, text):
         self.set_font("Helvetica", "", 10)
         self.set_text_color(30, 30, 30)
-        self.multi_cell(0, 6, text)
+        self.set_x(self.l_margin)
+        self.multi_cell(0, 6, safe_text(text, 3000))
         self.ln(2)
 
     def kv(self, key, value):
         self.set_font("Helvetica", "B", 10)
-        self.cell(55, 6, key + ":", ln=False)
+        self.set_x(self.l_margin)
+        self.cell(55, 6, safe_text(str(key), 60) + ":", new_x="RIGHT", new_y="TOP")
         self.set_font("Helvetica", "", 10)
-        self.multi_cell(0, 6, str(value))
+        self.multi_cell(0, 6, safe_text(str(value), 800))
 
     def table_row(self, cols, widths, bold=False):
         self.set_font("Helvetica", "B" if bold else "", 9)
+        self.set_x(self.l_margin)
         for col, w in zip(cols, widths):
-            self.cell(w, 6, str(col)[:30], border=1)
+            self.cell(w, 6, safe_text(str(col), 30), border=1)
         self.ln()
 
 
@@ -1313,16 +1340,16 @@ def main():
     pdf_company_overview()
     for p in PROJ:
         pdf_project_report(p)
-    for v in VEN[:5]:
+    for v in VEN:
         pdf_vendor_evaluation(v)
     pdf_qc_inspection_report()
-    for pol in POL[:3]:
+    for pol in POL:
         pdf_hr_policy(pol)
     pdf_annual_production_review()
     pdf_export_report()
-    for p in PC[:5]:
+    for p in PC:
         pdf_product_spec(p, "PC")
-    for c in CW[:5]:
+    for c in CW:
         pdf_product_spec(c, "CW")
     pdf_it_project_report()
     pdf_service_centre_report()
@@ -1330,7 +1357,7 @@ def main():
     pdf_intern_onboarding()
     pdf_safety_compliance()
     pdf_product_catalog_summary()
-    for v in VEN[:3]:
+    for v in VEN:
         pdf_vendor_contract(v)
     pdf_audit_summary()
 
@@ -1339,7 +1366,7 @@ def main():
     for p in PROJ:
         docx_executive_summary(p)
     docx_hr_intern_guide()
-    for v in VEN[:3]:
+    for v in VEN:
         docx_vendor_contract_summary(v)
     docx_finance_q4_budget()
     docx_operations_plant_report()

@@ -7,11 +7,7 @@ venv/
 .venv/
 
 # Generated data
-data/PDF/
-data/Docs/
-data/TXT/
-data/processed/
-data/Scanned_Copy/
+data/
 
 # ZIP files
 *.zip

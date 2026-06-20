@@ -7,12 +7,16 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_RAW        = os.path.join(BASE_DIR, "data", "raw")
 DATA_PROCESSED  = os.path.join(BASE_DIR, "data", "processed")
 
-# Sub-folders inside data/raw
+# Sub-folders inside data/raw (synthetic data)
 PDF_DIR    = os.path.join(DATA_RAW, "pdfs")
 DOCX_DIR   = os.path.join(DATA_RAW, "docx")
 EXCEL_DIR  = os.path.join(DATA_RAW, "excel")
 EMAIL_DIR  = os.path.join(DATA_RAW, "emails")
 SQL_DIR    = os.path.join(DATA_RAW, "sql")
+
+# Sub-folders inside data/real_sourced (real Hawkins documents)
+REAL_PDF_DIR  = os.path.join(BASE_DIR, "data", "real_sourced", "pdfs")
+REAL_DOCX_DIR = os.path.join(BASE_DIR, "data", "real_sourced", "docx")
 
 # Chunking settings
 CHUNK_SIZE    = 512   # words per chunk
@@ -21,7 +25,7 @@ CHUNK_OVERLAP = 50    # words overlap between chunks
 # Embedding model (runs locally, no internet needed after first download)
 EMBEDDING_MODEL = "BAAI/bge-m3"
 
-# ChromaDB ( vector database)
+# ChromaDB (vector database)
 CHROMA_PATH       = os.path.join(BASE_DIR, "chroma_db")
 CHROMA_COLLECTION = "hawkins_knowledge"
 
