@@ -118,18 +118,14 @@ def index_directory(collection, directory, extractor_fn, label, indexed_files):
 
         print(f"\n  -> {fname}")
         try:
-
-        # Auto-handle ZIP files
-         if fname.lower().endswith('.zip'):
-            try:
+            # Auto-handle ZIP files
+            if fname.lower().endswith('.zip'):
                 from pipeline.zip_handler import index_zip
                 n = index_zip(fpath, collection, verbose=True)
                 total_chunks += n
                 indexed_files.add(fpath)
                 save_progress(indexed_files)
-            except Exception as e:
-                print(f'  [ERROR] {fname} (zip): {e}')
-            continue
+                continue
 
             docs = extractor_fn(fpath)
 

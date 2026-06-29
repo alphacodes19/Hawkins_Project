@@ -15,7 +15,7 @@ import config
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Hawkins Knowledge Assistant",
-    page_icon="🍲",
+    page_icon=None,
     layout="wide"
 )
 
@@ -88,7 +88,7 @@ def index_uploaded_file(tmp_path, original_name):
                 f"upload_{original_name}_{sheet}_chunk_{i}" if sheet
                 else f"upload_{original_name}_chunk_{i}"
             )
-            collection.add(
+            collection.upsert(
                 ids=[chunk_id],
                 embeddings=[embedding],
                 documents=[chunk],
@@ -139,6 +139,7 @@ ANSWER:"""
     stream = ollama.chat(
         model=config.OLLAMA_MODEL,
         messages=[{"role": "user", "content": prompt}],
+        options={"num_ctx": 4096},
         stream=True
     )
     for part in stream:
@@ -149,8 +150,8 @@ ANSWER:"""
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🍲 Hawkins Knowledge Assistant")
-    st.caption("Internal AI · IT & AI Department")
+    st.markdown("## Hawkins Knowledge Assistant")
+    st.caption("Internal AI")
     st.divider()
 
     # DB stats — always fresh (no cache)
@@ -164,7 +165,7 @@ with st.sidebar:
     st.divider()
 
     # ── File upload ──────────────────────────────────────────────────────────
-    st.subheader("📎 Upload Documents")
+    st.subheader("Upload Documents")
     uploaded_files = st.file_uploader(
         "PDF, DOCX, XLSX, or EML",
         accept_multiple_files=True,
@@ -172,7 +173,7 @@ with st.sidebar:
     )
 
     if uploaded_files:
-        if st.button("⚡ Index Uploaded Files", type="primary", use_container_width=True):
+        if st.button("Index Uploaded Files", type="primary", use_container_width=True):
             total_new = 0
             progress  = st.progress(0, text="Starting...")
             log       = st.empty()
@@ -187,26 +188,27 @@ with st.sidebar:
                 try:
                     n = index_uploaded_file(tmp_path, uf.name)
                     total_new += n
-                    results.append(f"✅ **{uf.name}** → {n} chunks")
+                    results.append(f"+ {uf.name} — {n} chunks indexed")
                 except Exception as e:
-                    results.append(f"❌ **{uf.name}** → {e}")
+                    results.append(f"- {uf.name} — error: {e}")
                 finally:
                     os.unlink(tmp_path)
 
             progress.progress(1.0, text="Done!")
             log.markdown("\n\n".join(results))
-            st.success(f"✅ Indexing complete — {total_new} new chunks added!")
+            st.success(f"Indexing complete — {total_new} new chunks added.")
             st.rerun()
 
     st.divider()
 
     # ── Demo questions ───────────────────────────────────────────────────────
-    st.subheader("💡 Demo Questions")
+    st.subheader("Sample Questions")
     demo_questions = [
         "What is the leave policy for interns?",
         "Show me the 2025 audit approval.",
         "What is the status of Project Aurora?",
         "Summarise all documents related to Presstek.",
+        "Recipe of Rawa Dosa ?",
     ]
     for dq in demo_questions:
         if st.button(dq, use_container_width=True, key=f"demo_{dq[:20]}"):
@@ -218,8 +220,8 @@ with st.sidebar:
 
 
 # ── Main chat ─────────────────────────────────────────────────────────────────
-st.header("🍲 Hawkins Enterprise Knowledge Assistant")
-st.caption("Ask anything about Hawkins documents. Answers are grounded in your indexed files.")
+st.header("Hawkins Knowledge Assistant")
+st.caption("Ask anything about Hawkins documents. Answers are in your indexed files.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -231,7 +233,7 @@ for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
         if msg.get("chunks"):
-            with st.expander(f"📄 Sources — {len(set(c['source'] for c in msg['chunks']))} documents"):
+            with st.expander(f"Sources — {len(set(c['source'] for c in msg['chunks']))} documents"):
                 for chunk in msg["chunks"]:
                     st.markdown(f"**{chunk['source']}** · score `{chunk['score']}` · {chunk.get('source_type','')} · {chunk.get('doc_type','')}")
                     st.markdown(f"> {chunk['text'][:300]}...")
@@ -253,7 +255,7 @@ if question:
             chunks = st.session_state.get("last_chunks", [])
 
             if chunks:
-                with st.expander(f"📄 Sources — {len(set(c['source'] for c in chunks))} documents, {len(chunks)} chunks"):
+                with st.expander(f"Sources — {len(set(c['source'] for c in chunks))} documents, {len(chunks)} chunks"):
                     for chunk in chunks:
                         st.markdown(f"**{chunk['source']}** · score `{chunk['score']}` · {chunk.get('source_type','')} · {chunk.get('doc_type','')}")
                         st.markdown(f"> {chunk['text'][:300]}...")

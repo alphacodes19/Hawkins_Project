@@ -43,7 +43,8 @@ def generate_answer(question, chunks):
         messages=[{
             "role": "user",
             "content": ANSWER_PROMPT.format(context=context, question=question)
-        }]
+        }],
+        options={"num_ctx": 4096}
     )
 
     return {
