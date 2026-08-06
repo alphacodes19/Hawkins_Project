@@ -1,0 +1,7 @@
+[[pages]]
+path = "app.py"
+name = "Search Panel"
+
+[[pages]]
+path = "pages/1_Admins_Control_Panel.py"
+name = "Admin Control Panel"

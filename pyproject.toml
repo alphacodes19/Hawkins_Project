@@ -1,0 +1,44 @@
+[tool.pytest.ini_options]
+testpaths    = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "integration: marks tests requiring live ChromaDB + Ollama (deselect with '-m not integration')",
+]
+
+[tool.ruff]
+# Ruff is a fast Python linter (replaces flake8/pyflakes/pycodestyle).
+# Install: pip install ruff
+# Run:     ruff check .
+target-version = "py311"
+line-length    = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    "data",
+    "chroma_db",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (undefined names, unused imports)
+    "W",   # pycodestyle warnings
+    "I",   # isort (import order)
+    "B",   # bugbear (common bugs)
+    "UP",  # pyupgrade (modern Python syntax)
+]
+ignore = [
+    "E501",   # line too long — handled case-by-case
+    "E402",   # module-level import not at top (config requires chdir first)
+    "B006",   # do not use mutable data structures for argument defaults
+    "UP007",  # use X | Y for union types (Python 3.9 syntax, not used in 3.11+ yet)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*"  = ["F401"]   # unused imports in test files are often fixtures
+"app.py"   = ["E402"]   # sys.path manipulation before imports is intentional
+"pages/*"  = ["E402"]

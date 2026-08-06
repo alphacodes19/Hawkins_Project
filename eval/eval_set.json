@@ -1,0 +1,247 @@
+{
+  "_comment": "Hawkins Data Archive \u00e2\u20ac\u201d Retrieval Evaluation Set v1.0",
+  "_instructions": "Each entry maps a natural-language query to the filename(s) that MUST appear in the top-5 retrieved documents for the query to be considered a hit. Add real filenames from your corpus before running eval_retrieval.py. The 'notes' field explains why each document is the ground-truth answer.",
+  "_how_to_add": [
+    "1. Think of a query a real Hawkins employee would type.",
+    "2. Search manually (or ask an admin) to confirm which file(s) answer it.",
+    "3. Add the entry below with the exact source filename as it appears in ChromaDB.",
+    "4. Run: python eval/eval_retrieval.py"
+  ],
+  "queries": [
+    {
+      "id": "Q01",
+      "query": "What is the leave policy for interns?",
+      "expected_sources": ["05_Policy_POL001_Intern_Leave_and_Conduct_Polic.pdf", "EMAIL_08_Intern_Leave_Policy__Updated_effective_.eml"],
+      "notes": "HR policy document. Fill in actual filename after indexing. [NEEDS_REVIEW: no confident match found]",
+      "category": "policy"
+    },
+    {
+      "id": "Q02",
+      "query": "Show me the 2025 audit approval document",
+      "expected_sources": ["16_Audit_Records_Summary_2024_2025.pdf"],
+      "notes": "Finance / audit document from 2025. [NEEDS_REVIEW: no confident match found]",
+      "category": "finance"
+    },
+    {
+      "id": "Q03",
+      "query": "What is the status of Project Aurora?",
+      "expected_sources": [
+        "02_Project_P001_Project_Aurora_Report.pdf",
+        "EMAIL_01_Project_Aurora__Phase_2_approved,_Phase.eml",
+        "EMAIL_02_Project_Aurora__Budget_utilisation_upda.eml"
+      ],
+      "notes": "Internal project status report. [auto-filled, verify before trusting]",
+      "category": "project"
+    },
+    {
+      "id": "Q04",
+      "query": "Summarise all documents related to Presstek",
+      "expected_sources": ["03_Vendor_Evaluation_V001_Presstek_Components_.pdf", "EMAIL_05_Vendor_Presstek__Contract_renewal_appro.eml", "15_Supply_Agreement_V001_Presstek_Components_.pdf"],
+      "notes": "Vendor contract or correspondence with Presstek. [NEEDS_REVIEW: no confident match found]",
+      "category": "vendor"
+    },
+    {
+      "id": "Q05",
+      "query": "Hawkins Futura pressure cooker instruction manual",
+      "expected_sources": [
+        "Hawkins_Pressure_Cooker_FAQ.docx"
+      ],
+      "notes": "Product instruction manual for Futura line. [auto-filled, verify before trusting]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q06",
+      "query": "non-stick cookware warranty terms",
+      "expected_sources": [
+        "05_Policy_POL008_Product_Warranty_and_Service_P.pdf"
+      ],
+      "notes": "Warranty policy document for NS products. [auto-filled, verify before trusting]",
+      "category": "policy"
+    },
+    {
+      "id": "Q07",
+      "query": "cooker gasket replacement procedure",
+      "expected_sources": ["EMAIL_17_Vendor_SafeSeal__Gasket_replacement_bat.eml"],
+      "notes": "Maintenance or service manual section on gaskets. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q08",
+      "query": "vendor agreement with SafeSeal",
+      "expected_sources": [
+        "15_Supply_Agreement_V003_SafeSeal_Gaskets.pdf",
+        "03_Vendor_Evaluation_V003_SafeSeal_Gaskets.pdf",
+        "EMAIL_17_Vendor_SafeSeal__Gasket_replacement_bat.eml"
+      ],
+      "notes": "Supply contract with SafeSeal vendor. [auto-filled, verify before trusting]",
+      "category": "vendor"
+    },
+    {
+      "id": "Q09",
+      "query": "Q4 financial report revenue figures",
+      "expected_sources": ["DOCX_04_Finance_Q4_2025_Budget_Review.docx"],
+      "notes": "Finance quarterly report with revenue data. [NEEDS_REVIEW: no confident match found]",
+      "category": "finance"
+    },
+    {
+      "id": "Q10",
+      "query": "hard anodised cookware product specifications",
+      "expected_sources": [
+        "08_Product_Spec_CW001_Futura_Hard_Anodised_Tava.pdf",
+        "08_Product_Spec_CW002_Futura_Hard_Anodised_Tava.pdf",
+        "08_Product_Spec_CW003_Futura_Hard_Anodised_Roti.pdf",
+        "08_Product_Spec_CW004_Futura_Hard_Anodised_Flat.pdf",
+        "08_Product_Spec_CW005_Futura_Hard_Anodised_Fryi.pdf"
+      ],
+      "notes": "Product spec sheet for HA cookware line. [auto-filled, verify before trusting]",
+      "category": "product_spec"
+    },
+    {
+      "id": "Q11",
+      "query": "induction compatible pressure cooker models",
+      "expected_sources": ["2 Litre, 3 Litre & 4 Litre Induction Compatible.pdf"],
+      "notes": "Catalogue or product list showing IC models. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_spec"
+    },
+    {
+      "id": "Q12",
+      "query": "employee travel reimbursement policy",
+      "expected_sources": 	["05_Policy_POL005_Travel_and_Expense_Reimburseme.pdf"],
+      "notes": "HR policy on travel expense claims. [NEEDS_REVIEW: no confident match found]",
+      "category": "policy"
+    },
+    {
+      "id": "Q13",
+      "query": "Biryani recipe using Hawkins pressure cooker",
+      "expected_sources": [
+        "Hawkins_Pressure_Cooker_FAQ.docx"
+      ],
+      "notes": "Recipe document \u00e2\u20ac\u201d Biryani. [auto-filled, verify before trusting]",
+      "category": "recipe"
+    },
+    {
+      "id": "Q14",
+      "query": "Project Falcon milestone schedule",
+      "expected_sources": [
+        "02_Project_P002_Project_Falcon_Report.pdf",
+        "EMAIL_03_Project_Falcon__Final_audit_report_uplo.eml"
+      ],
+      "notes": "Internal project plan or milestone doc for Falcon. [auto-filled, verify before trusting]",
+      "category": "project"
+    },
+    {
+      "id": "Q15",
+      "query": "supply agreement with SteelForm Industries",
+      "expected_sources": [
+        "15_Supply_Agreement_V002_SteelForm_Industries.pdf",
+        "03_Vendor_Evaluation_V002_SteelForm_Industries.pdf"
+      ],
+      "notes": "Vendor contract with SteelForm. [auto-filled, verify before trusting]",
+      "category": "vendor"
+    },
+    {
+      "id": "Q16",
+      "query": "safety instructions for pressure cooking",
+      "expected_sources": ["Hawkins Hevibase and Contura Black XT - IM 132.pdf", "FuturaPC_Eng.pdf", "Ceramic-Coated Hawkins Contura IM.pdf", "Ventura IM.pdf"],
+      "notes": "Safety section in any pressure cooker manual. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q17",
+      "query": "annual general meeting minutes 2024",
+      "expected_sources": ["Hawkins Hevibase and Contura Black XT - IM 132.pdf", "FuturaPC_Eng.pdf", "Ceramic-Coated Hawkins Contura IM.pdf", "Ventura IM.pdf"],
+      "notes": "AGM minutes document. [NEEDS_REVIEW: no confident match found]",
+      "category": "corporate"
+    },
+    {
+      "id": "Q18",
+      "query": "dosa tava cleaning and maintenance",
+      "expected_sources": ["08_Product_Spec_CW011_Futura_Nonstick_Dosa_Tava.pdf"],
+      "notes": "Care instructions for dosa tava product. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q19",
+      "query": "IT security policy and data handling",
+      "expected_sources": [
+        "05_Policy_POL004_IT_Security_and_Data_Handling_.pdf",
+        "DOCX_06_IT_Security_Data_Policy.docx"
+      ],
+      "notes": "IT department policy document. [auto-filled, verify before trusting]",
+      "category": "policy"
+    },
+    {
+      "id": "Q20",
+      "query": "Contura pressure cooker price list",
+      "expected_sources": [
+        "08_Product_Spec_PC010_Hawkins_Contura_HC_15.pdf",
+        "08_Product_Spec_PC011_Hawkins_Contura_HC_30.pdf",
+        "08_Product_Spec_PC017_Hawkins_Contura_Black_CB_.pdf"
+      ],
+      "notes": "Pricing catalogue showing Contura models. [auto-filled, verify before trusting]",
+      "category": "product_spec"
+    },
+    {
+      "id": "Q21",
+      "query": "what is the minimum whistles for cooking dal",
+      "expected_sources": ["MissMary_Cookbook.pdf"],
+      "notes": "Recipe or FAQ document with cooking times. [NEEDS_REVIEW: no confident match found]",
+      "category": "recipe"
+    },
+    {
+      "id": "Q22",
+      "query": "GermanCoat coating warranty and care",
+      "expected_sources": [
+        "05_Policy_POL008_Product_Warranty_and_Service_P.pdf"
+      ],
+      "notes": "Product warranty or care doc mentioning GermanCoat. [auto-filled, verify before trusting]",
+      "category": "product_spec"
+    },
+    {
+      "id": "Q23",
+      "query": "Project Helix budget approval",
+      "expected_sources": ["02_Project_P003_Project_Helix_Report.pdf", "DOCX_01_Executive_Summary_P003.docx"],
+      "notes": "Finance or project document with budget for Helix. [NEEDS_REVIEW: no confident match found]",
+      "category": "finance"
+    },
+    {
+      "id": "Q24",
+      "query": "Hawkins cooker lid locking mechanism",
+      "expected_sources": ["Ceramic-Coated Hawkins Contura IM.pdf"],
+      "notes": "Technical spec or manual section on lid locking. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q25",
+      "query": "new employee onboarding checklist",
+      "expected_sources": ["12_Intern_Onboarding_Guide_2026.pdf"],
+      "notes": "HR onboarding document. [auto-filled, verify before trusting]",
+      "category": "policy"
+    },
+    {
+      "id": "Q26",
+      "query": "stainless steel cookware care instructions",
+      "expected_sources": [
+        "IM 136 - Hawkins Stainless Steel Tri-Ply Cookware.pdf"
+      ],
+      "notes": "Care guide for SS cookware line. [auto-filled, verify before trusting]",
+      "category": "product_manual"
+    },
+    {
+      "id": "Q27",
+      "query": "vendor performance review PackRite",
+      "expected_sources": [
+        "03_Vendor_Evaluation_V007_Packrite_Cartons_Ltd.pdf"
+      ],
+      "notes": "Vendor evaluation or review doc for PackRite. [auto-filled, verify before trusting]",
+      "category": "vendor"
+    },
+    {
+      "id": "Q28",
+      "query": "tri-ply cookware construction and benefits",
+      "expected_sources":["08_Product_Spec_CW020_Hawkins_Tri-Ply_SS_Frying.pdf", "08_Product_Spec_CW021_Hawkins_Tri-Ply_SS_Handi.pdf", "08_Product_Spec_CW022_Hawkins_Tri-Ply_SS_Kadhai.pdf", "08_Product_Spec_CW024_Hawkins_Tri-Ply_Metro_Pat.pdf"],
+      "notes": "Product spec or marketing doc for tri-ply range. [NEEDS_REVIEW: no confident match found]",
+      "category": "product_spec"
+    }
+  ]
+}

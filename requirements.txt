@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Hawkins Knowledge Assistant — Python Dependencies
+# ─────────────────────────────────────────────────────────────────────────────
+# Install all at once:
+#     pip install -r requirements.txt
+#
+# SYSTEM DEPENDENCIES (not pip — install separately):
+#
+#   Tesseract OCR engine  — needed for scanned PDF support
+#     Windows : https://github.com/UB-Mannheim/tesseract/wiki
+#               After install, set in PowerShell before running the app:
+#               $env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+#     Linux   : sudo apt install tesseract-ocr
+#     macOS   : brew install tesseract
+#
+#   Ollama  — local LLM runtime (runs LLaMA 3.1:8b)
+#     All platforms : https://ollama.com/download
+#     After install : ollama pull llama3.1:8b
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+# ── UI Framework ──────────────────────────────────────────────────────────────
+streamlit
+
+
+# ── Vector Database ───────────────────────────────────────────────────────────
+chromadb
+
+
+# ── AI / ML ───────────────────────────────────────────────────────────────────
+# Loads BGE-M3 embedding model and ms-marco-MiniLM-L-6-v2 reranker
+sentence-transformers
+
+# Python client for the local Ollama server (LLaMA answer generation)
+ollama
+
+# BM25 keyword search — one of the four retrieval paths
+rank-bm25
+
+# Fuzzy string matching — typo correction and metadata search
+rapidfuzz
+
+# Numerical operations used by the embedding pipeline
+numpy
+
+
+# ── Document Parsing ──────────────────────────────────────────────────────────
+# PDF text extraction (digital/text-layer PDFs)
+pdfplumber
+
+# PDF → image conversion for scanned pages (no Poppler required)
+pypdfium2
+
+# Python wrapper for Tesseract OCR engine
+pytesseract
+
+# Image processing — required by pytesseract
+Pillow
+
+# Microsoft Word .docx files
+python-docx
+
+# Excel .xlsx / .xls files
+pandas
+openpyxl
+
+# Microsoft Outlook .msg email files (optional — app degrades gracefully without it)
+# If not installed, .msg files are indexed as stubs and flagged for re-upload.
+extract-msg
+
+
+# ── PDF Generation (documentation) ───────────────────────────────────────────
+# Used to generate the technical documentation and user manual PDFs
+reportlab
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NOTES
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Packages NOT listed here (already in Python standard library, no install):
+#   sqlite3, hashlib, hmac, email, mailbox, json, os, re, shutil,
+#   tempfile, zipfile, argparse, math, sys, datetime
+#
+# Packages installed automatically as dependencies of the above
+# (you don't need to install these directly):
+#   torch, transformers, tokenizers, huggingface-hub, tqdm, requests,
+#   pydantic, onnxruntime, pypdf, lxml, et-xmlfile
+#
+# Memory note:
+#   sentence-transformers will download the BGE-M3 model (~1.1 GB) and the
+#   ms-marco-MiniLM-L-6-v2 reranker (~80 MB) on first run. Make sure you
+#   have a stable internet connection the first time you start the app.
+#
+# ─────────────────────────────────────────────────────────────────────────────

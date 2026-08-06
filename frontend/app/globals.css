@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans;
+  }
+  ::selection {
+    @apply bg-accent-soft text-accent-hover;
+  }
+  /* Visible keyboard focus everywhere — a Streamlit-era gap worth not repeating */
+  :focus-visible {
+    outline: 2px solid theme("colors.accent.DEFAULT");
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #c7cbd4 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #c7cbd4;
+    border-radius: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Minimal prose styling for mammoth's docx->HTML output — no Tailwind
+   typography plugin dependency needed for this one use case. */
+.docx-preview h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+.docx-preview h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.875rem 0 0.5rem;
+}
+.docx-preview h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.4rem;
+}
+.docx-preview p {
+  margin: 0.5rem 0;
+}
+.docx-preview ul,
+.docx-preview ol {
+  margin: 0.5rem 0 0.5rem 1.25rem;
+}
+.docx-preview li {
+  margin: 0.15rem 0;
+}
+.docx-preview table {
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  width: 100%;
+}
+.docx-preview td,
+.docx-preview th {
+  border: 1px solid theme("colors.border");
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85em;
+}
+.docx-preview img {
+  max-width: 100%;
+  height: auto;
+}
+.docx-preview a {
+  color: theme("colors.accent.DEFAULT");
+  text-decoration: underline;
+}

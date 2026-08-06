@@ -1,0 +1,79 @@
+name: Hawkins Data Archive — CI
+
+# Runs on every push and pull request to main/develop.
+# Integration tests (requiring live ChromaDB + Ollama) are excluded by default.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Python setup ──────────────────────────────────────────────────────
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # ── Install lightweight deps only (no GPU / model weights needed) ─────
+      # The test suite mocks chromadb, sentence_transformers, and ollama,
+      # so only the pure-Python dependencies need to be installed in CI.
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov rapidfuzz rank-bm25
+
+      # ── Run tests, excluding integration tests ────────────────────────────
+      # Integration tests (marked @pytest.mark.integration) require a live
+      # ChromaDB corpus and Ollama instance — they run manually on the server,
+      # not in CI.
+      - name: Run unit tests
+        run: |
+          pytest tests/ \
+            -m "not integration" \
+            -v \
+            --tb=short \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-omit="tests/*,eval/*,generation/*,scripts/*,pages/*,app.py"
+
+      # ── Upload coverage report ────────────────────────────────────────────
+      # Optional: uncomment if you set up Codecov or a similar service.
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+
+  # ── Lint (optional, add pyproject.toml to enable) ──────────────────────────
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # lint failures don't block merges yet
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Run ruff
+        run: |
+          ruff check . \
+            --exclude=".git,__pycache__,data,chroma_db" \
+            --ignore=E501,E402,W291  \
+            || true   # non-zero exit is warning-only until lint is clean

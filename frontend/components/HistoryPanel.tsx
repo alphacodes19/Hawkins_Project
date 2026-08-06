@@ -1,0 +1,92 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { searchApi } from "@/lib/api";
+
+interface SessionEntry {
+  session_id: string;
+  date_label: string;
+  start_time: string;
+  queries: string[];
+}
+
+export function HistoryPanel() {
+  const [open, setOpen] = useState(false);
+  const [sessions, setSessions] = useState<SessionEntry[] | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (open && sessions === null) {
+      searchApi.history().then(setSessions).catch(() => setSessions([]));
+    }
+  }, [open, sessions]);
+
+  function goToQuery(q: string) {
+    router.push(`/?q=${encodeURIComponent(q)}`);
+  }
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between text-sm text-ink-muted hover:text-ink px-3 py-2 rounded-md hover:bg-canvas transition-colors"
+      >
+        <span>Search History</span>
+        <svg
+          className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="px-1 pb-2 max-h-72 overflow-y-auto scrollbar-thin">
+          {sessions === null ? (
+            <p className="text-xs text-ink-faint px-2 py-1">Loading…</p>
+          ) : sessions.length === 0 ? (
+            <p className="text-xs text-ink-faint px-2 py-1">No search history yet.</p>
+          ) : (
+            sessions.slice(0, 30).map((s) => <SessionGroup key={s.session_id} session={s} onPick={goToQuery} />)
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SessionGroup({ session, onPick }: { session: SessionEntry; onPick: (q: string) => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border-t border-border first:border-t-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left px-2 py-1.5 text-xs text-ink-muted hover:text-ink"
+      >
+        {session.date_label} ({session.start_time}) — {session.queries.length} search
+        {session.queries.length === 1 ? "" : "es"}
+      </button>
+      {open && (
+        <div className="pb-1.5 space-y-0.5">
+          {session.queries.map((q, i) => (
+            <button
+              key={i}
+              onClick={() => onPick(q)}
+              className="w-full text-left px-3 py-1 text-xs text-ink-faint hover:text-accent hover:bg-canvas rounded-md truncate"
+              title={q}
+            >
+              {q.length > 55 ? q.slice(0, 55) + "…" : q}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
