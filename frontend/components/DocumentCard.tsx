@@ -104,12 +104,23 @@ export const DocumentCard = memo(function DocumentCard({
           <div className="flex gap-2 mt-3">
             {doc.doc_id && (
               <>
-                <button
-                  onClick={() => setShowViewer(true)}
-                  className="text-xs font-medium text-accent hover:text-accent-hover border border-accent/30 rounded-md px-2.5 py-1 transition-colors"
-                >
-                  View
-                </button>
+                {isEmail ? (
+                  <a
+                    href={`/view?doc_id=${encodeURIComponent(doc.doc_id)}&name=${encodeURIComponent(doc.source)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs font-medium text-accent hover:text-accent-hover border border-accent/30 rounded-md px-2.5 py-1 transition-colors"
+                  >
+                    View
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => setShowViewer(true)}
+                    className="text-xs font-medium text-accent hover:text-accent-hover border border-accent/30 rounded-md px-2.5 py-1 transition-colors"
+                  >
+                    View
+                  </button>
+                )}
                 <a
                   href={filesApi.downloadUrl(doc.doc_id)}
                   className="text-xs font-medium text-ink-muted hover:text-ink border border-border rounded-md px-2.5 py-1 transition-colors"

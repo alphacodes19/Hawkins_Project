@@ -186,13 +186,6 @@ def _ngram_overlap(answer: str, chunks: list[dict], n: int = 3) -> dict:
     }
 
 
-_COMMON_SENTENCE_STARTERS = {
-    "the", "this", "that", "these", "those", "it", "there", "here",
-    "no", "yes", "however", "additionally", "furthermore", "based",
-    "according", "in", "on", "at", "for", "if", "when", "while", "since",
-}
-
-
 def _extract_factual_anchors(sentence: str) -> list[str]:
     """
     The parts of a sentence that would be concretely WRONG if hallucinated —
@@ -200,30 +193,43 @@ def _extract_factual_anchors(sentence: str) -> list[str]:
     even when the underlying claim is completely faithful to the source.
     """
     anchors: list[str] = []
+    stripped_sentence = sentence.strip()
 
     # Numbers: dates, quantities, percentages, decimals, codes like "SKU 4177"
     anchors += re.findall(r"\d[\d,.:%]*", sentence)
 
-    # Multi-word proper-noun phrases ("Sabarmati Ashram", "British India"),
-    # kept together rather than as separate single-word anchors so a partial
-    # coincidental match on one common word doesn't count as verification.
-    anchors += re.findall(r"\b[A-Z][a-zA-Z]{2,}(?:\s+[A-Z][a-zA-Z]{2,}){0,3}\b", sentence)
+    # Capitalized-word runs. A SINGLE capitalized word at the very start of
+    # the sentence is NOT kept as an anchor here — English capitalizes the
+    # first word of every sentence regardless of part of speech, so "Emails
+    # at Hawkins Cookers Limited will..." capitalizes "Emails" for the same
+    # reason it would capitalize "The" or "Under" — sentence position, not
+    # properness. A fixed stopword list ("the", "this", "that"...) can never
+    # cover this fully, because ANY ordinary word can end up sentence-
+    # initial ("Emails", "Views" — both genuinely tripped this in practice,
+    # not hypothetically). A RUN of 2+ consecutive capitalized words
+    # ("Hawkins Cookers Limited") stays a reliable anchor even at sentence
+    # start, since two-plus ordinary words coincidentally capitalized in a
+    # row is not something normal English does. A single capitalized word
+    # is trusted as an anchor once it's NOT sentence-initial, since mid-
+    # sentence capitalization is a real signal English reserves for proper
+    # nouns.
+    for match in re.finditer(r"\b[A-Z][a-zA-Z]{2,}(?:\s+[A-Z][a-zA-Z]{2,}){0,3}\b", sentence):
+        text = match.group()
+        is_multi_word = " " in text
+        is_sentence_initial = stripped_sentence.startswith(text)
+        if is_multi_word or not is_sentence_initial:
+            anchors.append(text)
 
     # Alphanumeric codes / model numbers / product codes (e.g. "ISET1", "P001")
     anchors += re.findall(r"\b[A-Za-z]+\d+[A-Za-z0-9]*\b", sentence)
 
-    # De-dupe, drop trivially short/common leading words that slipped through
-    # (e.g. a sentence-initial "The") — anything under 3 chars isn't a
-    # meaningful standalone fact to verify, and common sentence-starters that
-    # only got capitalised because they happen to open the sentence aren't
-    # real proper nouns — keeping them in would just pad the anchor count
-    # with words that trivially appear in almost any context, diluting the
-    # signal without adding any actual hallucination sensitivity.
+    # De-dupe, drop trivially short matches — anything under 3 chars isn't a
+    # meaningful standalone fact to verify.
     seen = set()
     out = []
     for a in anchors:
         a = a.strip()
-        if len(a) < 3 or a.lower() in seen or a.lower() in _COMMON_SENTENCE_STARTERS:
+        if len(a) < 3 or a.lower() in seen:
             continue
         seen.add(a.lower())
         out.append(a)

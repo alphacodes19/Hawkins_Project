@@ -20,7 +20,7 @@ export function LogoWatermark({ fixed = false, className = "" }: { fixed?: boole
         alt=""
         width={620}
         height={335}
-        className="opacity-[0.04] w-[42vw] max-w-[620px] h-auto"
+        className="opacity-[0.02] w-[42vw] max-w-[620px] h-auto"
       />
     </div>
   );

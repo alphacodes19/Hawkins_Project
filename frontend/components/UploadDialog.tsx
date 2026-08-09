@@ -17,6 +17,7 @@ import type {
 } from "@/lib/api";
 import { readDroppedItems, filesFromFileList } from "@/lib/file-drop";
 import { computeDocIdHash } from "@/lib/file-hash";
+import { mapWithConcurrency } from "@/lib/concurrency";
 import type { Department } from "@/lib/types";
 import { formatBytes } from "@/lib/text-utils";
 import { useEscapeKey } from "@/lib/use-escape-key";
@@ -136,21 +137,22 @@ export function UploadDialog({ onClose }: { onClose: () => void }) {
    * Runs stages 1-2 (filename + content hash) against every file BEFORE
    * any upload starts. Hashing happens client-side (Web Crypto) and the
    * check request only ever sends a 16-char hash — none of this costs a
-   * real upload, so it's cheap to run on every file in a batch, in
-   * parallel, without the user waiting on anything visible for the common
-   * case where nothing conflicts.
+   * real upload. Bounded to 3 concurrent files rather than firing the
+   * whole batch via Promise.all — reading many files into memory
+   * (file.arrayBuffer()) and hashing them all simultaneously is real
+   * main-thread/memory pressure for a folder-sized batch, not "free"
+   * parallelism, and was making the whole dialog feel janky right after
+   * selecting a folder.
    */
   async function handleUploadClick() {
     if (!files.length) return;
     setCheckingDuplicates(true);
     try {
-      const checked = await Promise.all(
-        files.map(async (file, fileIndex) => {
-          const docId = await computeDocIdHash(file.file);
-          const result = await uploadApi.checkDuplicate(file.file.name, docId);
-          return { fileIndex, file, result };
-        })
-      );
+      const checked = await mapWithConcurrency(files, 3, async (file, fileIndex) => {
+        const docId = await computeDocIdHash(file.file);
+        const result = await uploadApi.checkDuplicate(file.file.name, docId);
+        return { fileIndex, file, result };
+      });
       const found = checked.filter((c) => c.result.verdict !== "ok");
       if (found.length === 0) {
         startUpload(files);
@@ -529,7 +531,11 @@ function ConflictReview({
               <ResolutionButton
                 label="Skip this file"
                 active={c.resolution === "skip"}
-                onClick={() => onChange(c.fileIndex, "skip")}
+                onClick={() => {
+                  const t0 = performance.now();
+                  onChange(c.fileIndex, "skip");
+                  console.log(`[upload] skip resolution took ${(performance.now() - t0).toFixed(1)}ms`);
+                }}
               />
               <ResolutionButton
                 label={c.result.verdict === "exact_duplicate" ? "Upload anyway" : "Upload as new version"}

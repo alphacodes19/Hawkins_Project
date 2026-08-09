@@ -8,6 +8,20 @@ Server-Sent-Events response so the browser can render tokens as they arrive
 without polling or WebSocket infrastructure — SSE is the minimum-complexity
 tool for one-directional token streaming.
 
+This is a genuine `async def` generator using ollama.AsyncClient, not a sync
+generator run through Starlette's threadpool wrapper. I verified directly
+(a live server test, not just reading the code) that the sync-generator
+version was NOT silently buffering — Starlette streams a sync generator's
+yields incrementally, each `next()` call handed to the threadpool
+individually, not all at once at the end. So this change isn't fixing a
+"streaming is broken" bug; it's fixing a real but different problem: a sync
+generator doing long-running I/O occupies one threadpool worker for the
+entire duration of a generation. Starlette's default threadpool is a fixed
+size — several concurrent long generations could exhaust it and start
+queueing/blocking *unrelated* sync endpoints elsewhere in the app. An async
+generator releases the event loop between awaits instead of pinning a
+worker thread, which is the actual scalability fix here.
+
 Each SSE frame is `data: <json>\n\n`. Frame shapes:
   {"type": "token", "text": "..."}      — one generated token/piece
   {"type": "done", "answer": "...", "chunks": [...], "faithfulness": {...}|null}
@@ -16,6 +30,7 @@ Each SSE frame is `data: <json>\n\n`. Frame shapes:
 
 import json
 import logging
+import time
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -54,22 +69,23 @@ def _build_chunks(question: str, docs: list, allowed):
     return retrieve(question, allowed_doc_ids=allowed)
 
 
-def _generate(question: str, docs: list, allowed):
+async def _generate(question: str, docs: list, allowed):
     import ollama
     from retrieval.generator import ANSWER_PROMPT
     from eval.faithfulness_check import check_faithfulness
 
-    # Wraps the ENTIRE body, not just the ollama.chat() call. An exception
-    # anywhere before that call (chunk-building, prompt formatting) used to
-    # kill the generator before it ever yielded a byte — StreamingResponse
-    # had already committed a 200 status, so the browser would see a stream
-    # that opens and then closes with zero data: no "done", no "error", just
-    # silence. That's indistinguishable from "nothing happened" in the UI,
-    # which is the single worst failure mode here — catching everything and
-    # always yielding at least one SSE frame guarantees the UI can tell the
-    # difference between "still working" and "actually failed."
+    # Wraps the ENTIRE body, not just the ollama.chat() call — see the
+    # docstring above; a mid-generator failure that never yields anything is
+    # indistinguishable from "nothing happened" in the UI otherwise.
     try:
+        t_start = time.monotonic()
+        # _build_chunks and retrieve() below are still sync/CPU-bound (BM25,
+        # numpy sorting, no real I/O) — genuinely fast, not worth an
+        # asyncio.to_thread wrapper for microsecond-scale work. Only the
+        # ollama call, which is real network I/O with multi-second-plus
+        # latency, needed to become actually async.
         chunks = _build_chunks(question, docs, allowed)
+        t_chunks = time.monotonic()
 
         if not chunks:
             yield _sse({"type": "token", "text": "I could not find this information in the available documents."})
@@ -88,10 +104,14 @@ def _generate(question: str, docs: list, allowed):
         context = "\n\n".join(context_parts)
 
         prompt = ANSWER_PROMPT.format(context=context, question=question)
+        prompt_chars = len(prompt)
+        t_prompt = time.monotonic()
 
         full_answer = []
+        t_first_token = None
         try:
-            stream = ollama.chat(
+            client = ollama.AsyncClient()
+            stream = await client.chat(
                 model=config.OLLAMA_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 options={
@@ -101,9 +121,29 @@ def _generate(question: str, docs: list, allowed):
                 },
                 stream=True,
             )
-            for part in stream:
+            async for part in stream:
                 token = part["message"]["content"]
                 if token:
+                    if t_first_token is None:
+                        t_first_token = time.monotonic()
+                        # This is the number that actually matters for "why is
+                        # the answer slow" — everything before it (retrieval,
+                        # chunk selection, prompt building) is normally
+                        # milliseconds. If time-to-first-token is itself tens
+                        # of seconds, that's the local model (currently
+                        # config.OLLAMA_MODEL = "qwen2.5:14b", a genuinely
+                        # large model) processing the prompt — a
+                        # hardware/model-size cost, not something fixable in
+                        # this code. Logged unconditionally, not just on slow
+                        # requests, so there's a baseline to compare against
+                        # rather than only ever seeing outliers.
+                        logger.info(
+                            "chat timing: retrieval=%.2fs prompt_build=%.2fs "
+                            "TIME_TO_FIRST_TOKEN=%.2fs (prompt=%d chars, model=%s, num_ctx=%d)",
+                            t_chunks - t_start, t_prompt - t_chunks,
+                            t_first_token - t_prompt, prompt_chars,
+                            config.OLLAMA_MODEL, config.OLLAMA_NUM_CTX,
+                        )
                     full_answer.append(token)
                     yield _sse({"type": "token", "text": token})
         except Exception as e:
@@ -116,6 +156,13 @@ def _generate(question: str, docs: list, allowed):
             return
 
         answer = "".join(full_answer)
+        t_done = time.monotonic()
+        logger.info(
+            "chat timing: total=%.2fs (retrieval=%.2fs, first_token=%.2fs, generation=%.2fs, %d chars generated)",
+            t_done - t_start, t_chunks - t_start,
+            (t_first_token - t_prompt) if t_first_token else 0,
+            t_done - (t_first_token or t_prompt), len(answer),
+        )
         try:
             faithfulness = check_faithfulness(answer=answer, chunks=chunks, run_llm_check=False)
         except Exception:
@@ -129,7 +176,7 @@ def _generate(question: str, docs: list, allowed):
 
 
 @router.post("/stream")
-def chat_stream(body: ChatRequest, user: dict = Depends(get_current_user)):
+async def chat_stream(body: ChatRequest, user: dict = Depends(get_current_user)):
     allowed = authdb.allowed_doc_ids(user)
     return StreamingResponse(
         _generate(body.question, body.docs, allowed),
