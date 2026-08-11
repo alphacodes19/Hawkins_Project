@@ -190,12 +190,19 @@ def index_uploaded_file_streaming(tmp_path: str, original_name: str, acl: dict):
     doc_id = compute_doc_id(tmp_path)
     permanent_path = store_in_library(tmp_path, original_name=original_name, origin_tag="upload")
 
+    # doc_id and content_sha1 are the SAME value for uploads that go through
+    # this path (both are compute_doc_id() of the same bytes) — the split
+    # only matters for legacy rows whose doc_id is `legacy:<filename>` and
+    # whose content_sha1 is backfilled by scripts/backfill_content_sha1.py.
+    # We still write both, so a future doc_id-scheme change wouldn't
+    # silently break content-based duplicate detection.
     authdb.register_file(
         doc_id=doc_id,
         source=original_name,
         uploaded_by=acl.get("uploaded_by"),
         dept_ids=acl.get("dept_ids", []),
         is_public=acl.get("is_public", False),
+        content_sha1=doc_id,
     )
 
     model = get_model()

@@ -335,11 +335,31 @@ export function uploadFileWithProgress(
   return { promise, cancel: () => xhr.abort() };
 }
 
+export interface DuplicateCheckBatchItem {
+  filename: string;
+  content_sha1: string;
+}
+
+export interface DuplicateCheckBatchResponse {
+  results: DuplicateCheckResult[];
+}
+
 export const uploadApi = {
   checkDuplicate: (filename: string, docId: string) =>
     request<DuplicateCheckResult>("/api/upload/check", {
       method: "POST",
       body: JSON.stringify({ filename, doc_id: docId }),
+    }),
+  /**
+   * Single request that classifies every item, in one round-trip. Result
+   * order matches input order. Uses indexed lookups server-side (one query
+   * on content_sha1, one on lower(source)) rather than the per-item full
+   * table scan the older /check endpoint does.
+   */
+  checkDuplicateBatch: (items: DuplicateCheckBatchItem[]) =>
+    request<DuplicateCheckBatchResponse>("/api/upload/check-batch", {
+      method: "POST",
+      body: JSON.stringify({ items }),
     }),
   /** Legacy non-streaming path — kept for any external caller that just
    *  wants a single-shot upload without stage progress. The dialog itself

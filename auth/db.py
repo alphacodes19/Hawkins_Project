@@ -102,7 +102,8 @@ CREATE TABLE IF NOT EXISTS files (
     uploaded_by     TEXT,
     is_public       INTEGER NOT NULL DEFAULT 0,
     hidden_by_admin INTEGER NOT NULL DEFAULT 0,
-    created_at      TEXT NOT NULL
+    created_at      TEXT NOT NULL,
+    content_sha1    TEXT
 );
 
 CREATE TABLE IF NOT EXISTS file_dept (
@@ -113,7 +114,26 @@ CREATE TABLE IF NOT EXISTS file_dept (
 
 CREATE INDEX IF NOT EXISTS idx_files_doc_id   ON files(doc_id);
 CREATE INDEX IF NOT EXISTS idx_file_dept_file ON file_dept(file_id);
+-- idx_files_content_sha1 is created by _ensure_content_sha1_column() below,
+-- AFTER the ALTER TABLE that adds the column. Creating it here would fail on
+-- existing databases whose files table pre-dates the content_sha1 column,
+-- because CREATE INDEX ... ON files(content_sha1) is executed by
+-- executescript(SCHEMA) before the column exists.
 """
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# One-shot ALTER for databases that pre-date the content_sha1 column.
+# CREATE TABLE ... IF NOT EXISTS above is a no-op on an existing table, so it
+# will NOT add a new column to a table that was created by an earlier schema.
+# This runs additively, is idempotent, and touches nothing else. doc_id is
+# never modified.
+# ─────────────────────────────────────────────────────────────────────────────
+def _ensure_content_sha1_column(conn):
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(files)")}
+    if "content_sha1" not in cols:
+        conn.execute("ALTER TABLE files ADD COLUMN content_sha1 TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_files_content_sha1 ON files(content_sha1)")
 
 
 def init_db():
@@ -121,6 +141,7 @@ def init_db():
     conn = get_conn()
     try:
         conn.executescript(SCHEMA)
+        _ensure_content_sha1_column(conn)
 
         n_depts = conn.execute("SELECT COUNT(*) FROM departments").fetchone()[0]
         if n_depts == 0:
@@ -293,11 +314,29 @@ def set_password(user_id: int, new_password: str):
         conn.close()
 
 
+def delete_file_by_doc_id(doc_id: str):
+    """
+    Remove a single files row (and, via ON DELETE CASCADE, its file_dept
+    rows). Used by scripts/cleanup_orphaned_files.py to remove rows that
+    no longer correspond to anything in the current Chroma collection —
+    e.g. after a full reindex that dropped removed source files, or a
+    duplicate legacy: row left behind once a file was re-migrated under
+    its real content hash.
+
+    Does NOT touch Chroma, data/library/, or any other files row. Purely
+    a single DELETE against auth.db.files, scoped by doc_id.
+    """
+    conn = get_conn()
+    try:
+        conn.execute("DELETE FROM files WHERE doc_id = ?", (doc_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def delete_user(user_id: int):
     conn = get_conn()
     try:
-        # Refuse to delete the last remaining admin — otherwise the panel
-        # becomes permanently unreachable.
         row = conn.execute("SELECT role FROM users WHERE id = ?", (user_id,)).fetchone()
         if row and row["role"] == "admin":
             n = conn.execute(
@@ -314,20 +353,33 @@ def delete_user(user_id: int):
 # ─────────────────────────────────────────────────────────────────────────────
 # FILES + ACL
 # ─────────────────────────────────────────────────────────────────────────────
-def register_file(doc_id, source, uploaded_by=None, dept_ids=None, is_public=False):
+def register_file(doc_id, source, uploaded_by=None, dept_ids=None, is_public=False,
+                  content_sha1=None):
     """
     Record a file and its department tags. Safe to call on re-upload of the
-    same content: doc_id is a content hash, so this updates the existing row
-    rather than creating a duplicate.
+    same content: doc_id is a content hash for new uploads (or a legacy:
+    filename-derived id for pre-ACL corpus rows), so this updates the
+    existing row rather than creating a duplicate.
+
+    content_sha1 is the canonical server-computed SHA-1 (first 16 hex chars)
+    of the file's bytes when available. It is used exclusively for
+    content-based duplicate detection and is NEVER used as a join key —
+    doc_id remains the ACL/Chroma join key with its existing semantics.
+    Left NULL for legacy rows whose original bytes are unrecoverable.
     """
     conn = get_conn()
     try:
+        # COALESCE on the UPDATE branch keeps a previously-set content_sha1
+        # if the current call didn't supply one — avoids clobbering a
+        # backfilled hash on a subsequent register_file() that doesn't know
+        # the hash (e.g. a rare re-registration path).
         conn.execute(
-            "INSERT INTO files (doc_id, source, uploaded_by, is_public, created_at) "
-            "VALUES (?, ?, ?, ?, ?) "
+            "INSERT INTO files (doc_id, source, uploaded_by, is_public, created_at, content_sha1) "
+            "VALUES (?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(doc_id) DO UPDATE SET source = excluded.source, "
-            "                                  is_public = excluded.is_public",
-            (doc_id, source, uploaded_by, int(is_public), _now()),
+            "                                  is_public = excluded.is_public, "
+            "                                  content_sha1 = COALESCE(excluded.content_sha1, files.content_sha1)",
+            (doc_id, source, uploaded_by, int(is_public), _now(), content_sha1),
         )
         file_id = conn.execute(
             "SELECT id FROM files WHERE doc_id = ?", (doc_id,)
@@ -345,12 +397,103 @@ def register_file(doc_id, source, uploaded_by=None, dept_ids=None, is_public=Fal
         conn.close()
 
 
+def set_content_sha1(doc_id: str, content_sha1: str):
+    """
+    Backfill helper — sets content_sha1 for an existing row without touching
+    doc_id, source, ACLs, or anything else. Idempotent: writing the same
+    value twice is a no-op.
+    """
+    conn = get_conn()
+    try:
+        conn.execute(
+            "UPDATE files SET content_sha1 = ? WHERE doc_id = ?",
+            (content_sha1, doc_id),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def find_files_by_content_sha1(hashes, allowed):
+    """
+    Return every files row whose content_sha1 is in `hashes`, scoped to
+    `allowed` (the caller's allowed_doc_ids result). Uses the indexed
+    content_sha1 column; no full-table scan.
+
+      hashes  — iterable of content_sha1 values (16-char hex).
+      allowed — either None (admin bypass — no filter) or a set of doc_ids.
+                An empty set means "user can see nothing" and this returns [].
+
+    Preserves the same ACL boundary as the existing single-file endpoint:
+    a hit here means the user was already allowed to see this document via
+    the normal ACL rules; a match on an inaccessible document is filtered
+    out and never surfaces in the response.
+    """
+    hashes = [h for h in (hashes or []) if h]
+    if not hashes:
+        return []
+    if allowed is not None and len(allowed) == 0:
+        return []
+
+    conn = get_conn()
+    try:
+        placeholders = ",".join("?" * len(hashes))
+        rows = conn.execute(
+            f"SELECT id, doc_id, source, uploaded_by, is_public, hidden_by_admin, "
+            f"       created_at, content_sha1 "
+            f"FROM files "
+            f"WHERE content_sha1 IN ({placeholders}) "
+            f"  AND hidden_by_admin = 0",
+            tuple(hashes),
+        ).fetchall()
+        result = [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+    if allowed is None:
+        return result
+    return [r for r in result if r["doc_id"] in allowed]
+
+
+def find_files_by_filenames(filenames, allowed):
+    """
+    Return every files row whose lower(source) matches any of `filenames`,
+    scoped to `allowed`. Filename comparison is case-insensitive to match
+    the existing endpoint's behaviour.
+    """
+    names = [n.lower() for n in (filenames or []) if n]
+    if not names:
+        return []
+    if allowed is not None and len(allowed) == 0:
+        return []
+
+    conn = get_conn()
+    try:
+        placeholders = ",".join("?" * len(names))
+        rows = conn.execute(
+            f"SELECT id, doc_id, source, uploaded_by, is_public, hidden_by_admin, "
+            f"       created_at, content_sha1 "
+            f"FROM files "
+            f"WHERE lower(source) IN ({placeholders}) "
+            f"  AND hidden_by_admin = 0",
+            tuple(names),
+        ).fetchall()
+        result = [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+    if allowed is None:
+        return result
+    return [r for r in result if r["doc_id"] in allowed]
+
+
 def list_files() -> list:
     """Every registered file with its department tags. Used by the admin panel."""
     conn = get_conn()
     try:
         files = [dict(r) for r in conn.execute(
-            "SELECT id, doc_id, source, uploaded_by, is_public, hidden_by_admin, created_at "
+            "SELECT id, doc_id, source, uploaded_by, is_public, hidden_by_admin, "
+            "       created_at, content_sha1 "
             "FROM files ORDER BY source"
         )]
         tags = {}

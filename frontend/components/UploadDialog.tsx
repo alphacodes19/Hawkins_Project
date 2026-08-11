@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, DragEvent } from "react";
+import { useEffect, useRef, useState, useCallback, memo, DragEvent } from "react";
 import {
   departmentsApi,
   uploadBatchWithProgress,
@@ -134,25 +134,36 @@ export function UploadDialog({ onClose }: { onClose: () => void }) {
   }
 
   /**
-   * Runs stages 1-2 (filename + content hash) against every file BEFORE
-   * any upload starts. Hashing happens client-side (Web Crypto) and the
-   * check request only ever sends a 16-char hash — none of this costs a
-   * real upload. Bounded to 3 concurrent files rather than firing the
-   * whole batch via Promise.all — reading many files into memory
-   * (file.arrayBuffer()) and hashing them all simultaneously is real
-   * main-thread/memory pressure for a folder-sized batch, not "free"
-   * parallelism, and was making the whole dialog feel janky right after
-   * selecting a folder.
+   * CORRECTNESS: every file gets a content SHA-1 before the check.
+   * A renamed byte-identical copy of an existing document must still be
+   * detected as an exact_duplicate — that is only possible if we hash
+   * every file. We do NOT skip hashing based on the filename.
+   *
+   * Hashing is bounded to 3 concurrent reads to keep memory pressure
+   * sane on folder-sized batches. Once every hash is computed, ONE
+   * batch request replaces the previous one-request-per-file loop.
+   * (Moving the hash off the main thread via a Web Worker is a
+   * follow-up performance change, tracked separately.)
    */
   async function handleUploadClick() {
     if (!files.length) return;
     setCheckingDuplicates(true);
     try {
-      const checked = await mapWithConcurrency(files, 3, async (file, fileIndex) => {
-        const docId = await computeDocIdHash(file.file);
-        const result = await uploadApi.checkDuplicate(file.file.name, docId);
-        return { fileIndex, file, result };
+      const hashed = await mapWithConcurrency(files, 3, async (file, fileIndex) => {
+        const contentSha1 = await computeDocIdHash(file.file);
+        return { fileIndex, file, contentSha1 };
       });
+
+      const { results } = await uploadApi.checkDuplicateBatch(
+        hashed.map((h) => ({ filename: h.file.file.name, content_sha1: h.contentSha1 }))
+      );
+
+      const checked = hashed.map((h, i) => ({
+        fileIndex: h.fileIndex,
+        file: h.file,
+        result: results[i],
+      }));
+
       const found = checked.filter((c) => c.result.verdict !== "ok");
       if (found.length === 0) {
         startUpload(files);
@@ -175,9 +186,12 @@ export function UploadDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
-  function setResolution(fileIndex: number, resolution: Resolution) {
+  // useCallback is what makes ConflictRow's React.memo actually short-
+  // circuit: without a stable reference for onChange, every parent
+  // render would produce a new function identity, defeating the memo.
+  const setResolution = useCallback((fileIndex: number, resolution: Resolution) => {
     setConflicts((prev) => prev && prev.map((c) => (c.fileIndex === fileIndex ? { ...c, resolution } : c)));
-  }
+  }, []);
 
   async function confirmConflictReview() {
     if (!conflicts) return;
@@ -400,7 +414,17 @@ export function UploadDialog({ onClose }: { onClose: () => void }) {
 
                 {/* Hidden inputs driving the two picker buttons above — kept
                     outside the dropzone's conditional render so "Add more"
-                    can reuse the same file input once files already exist. */}
+                    can reuse the same file input once files already exist.
+
+                    The `accept` attribute was removed here as a P0 fix:
+                    on Windows, a multi-extension accept forces Explorer to
+                    enumerate the initial directory against the filter list
+                    before painting the picker (measured cost: seconds on
+                    OneDrive-synced / network / large folders). The
+                    filterSupported() call inside filesFromFileList remains
+                    the authoritative validation — anything unsupported is
+                    dropped and counted in `skippedCount`, exactly as
+                    before. */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -409,7 +433,6 @@ export function UploadDialog({ onClose }: { onClose: () => void }) {
                     if (e.target.files) addFiles(filesFromFileList(e.target.files));
                     e.target.value = "";
                   }}
-                  accept=".pdf,.docx,.doc,.xlsx,.xls,.eml,.msg,.mbox,.zip,.db"
                   className={VISUALLY_HIDDEN}
                   style={VISUALLY_HIDDEN_STYLE}
                   tabIndex={-1}
@@ -511,47 +534,7 @@ function ConflictReview({
 
       <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin">
         {conflicts.map((c) => (
-          <div key={c.fileIndex} className="border border-border rounded-md p-3">
-            <p className="text-sm text-ink font-medium truncate">{c.file.relativePath}</p>
-
-            {c.result.verdict === "exact_duplicate" ? (
-              <p className="text-xs text-ink-muted mt-1">
-                Identical content already exists as{" "}
-                <span className="font-medium">{c.result.existing?.source}</span>
-                {c.result.existing?.uploaded_by ? ` (uploaded by ${c.result.existing.uploaded_by})` : ""}.
-              </p>
-            ) : (
-              <p className="text-xs text-ink-muted mt-1">
-                A different file named <span className="font-medium">{c.result.existing?.source}</span> already
-                exists — this looks like a new version, not a duplicate.
-              </p>
-            )}
-
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              <ResolutionButton
-                label="Skip this file"
-                active={c.resolution === "skip"}
-                onClick={() => {
-                  const t0 = performance.now();
-                  onChange(c.fileIndex, "skip");
-                  console.log(`[upload] skip resolution took ${(performance.now() - t0).toFixed(1)}ms`);
-                }}
-              />
-              <ResolutionButton
-                label={c.result.verdict === "exact_duplicate" ? "Upload anyway" : "Upload as new version"}
-                active={c.resolution === "proceed"}
-                onClick={() => onChange(c.fileIndex, "proceed")}
-              />
-              {isAdmin && c.result.verdict === "same_name_conflict" && (
-                <ResolutionButton
-                  label="Replace existing"
-                  active={c.resolution === "replace"}
-                  onClick={() => onChange(c.fileIndex, "replace")}
-                  danger
-                />
-              )}
-            </div>
-          </div>
+          <ConflictRow key={c.fileIndex} conflict={c} isAdmin={isAdmin} onChange={onChange} />
         ))}
       </div>
 
@@ -579,7 +562,86 @@ function ConflictReview({
   );
 }
 
-function ResolutionButton({
+/**
+ * Memoized single conflict row.
+ *
+ * The whole point of this component existing separately from
+ * ConflictReview is React.memo: when the user clicks Skip on ONE row,
+ * setResolution rebuilds the conflicts array but keeps the object
+ * reference intact for every non-matching row (see the .map in
+ * setResolution). With `onChange` stabilized via useCallback in the
+ * parent, this component's props are then unchanged for non-clicked
+ * rows and React.memo short-circuits their re-render entirely.
+ *
+ * Previously the entire conflict list re-reconciled on every click,
+ * which was measurable at 50+ conflicts. See the `[upload] skip
+ * resolution took Xms` console.log below for the running measurement.
+ */
+const ConflictRow = memo(function ConflictRow({
+  conflict,
+  isAdmin,
+  onChange,
+}: {
+  conflict: Conflict;
+  isAdmin: boolean;
+  onChange: (fileIndex: number, resolution: Resolution) => void;
+}) {
+  const c = conflict;
+
+  // Per-row callbacks are stable across renders of THIS row — the
+  // dependencies are the row's fileIndex (constant for a row's lifetime)
+  // and the onChange reference (stable via useCallback in the parent).
+  const onSkip = useCallback(() => {
+    const t0 = performance.now();
+    onChange(c.fileIndex, "skip");
+    // eslint-disable-next-line no-console
+    console.log(`[upload] skip resolution took ${(performance.now() - t0).toFixed(1)}ms`);
+  }, [c.fileIndex, onChange]);
+  const onProceed = useCallback(() => onChange(c.fileIndex, "proceed"), [c.fileIndex, onChange]);
+  const onReplace = useCallback(() => onChange(c.fileIndex, "replace"), [c.fileIndex, onChange]);
+
+  return (
+    <div className="border border-border rounded-md p-3">
+      <p className="text-sm text-ink font-medium truncate">{c.file.relativePath}</p>
+
+      {c.result.verdict === "exact_duplicate" ? (
+        <p className="text-xs text-ink-muted mt-1">
+          Identical content already exists as{" "}
+          <span className="font-medium">{c.result.existing?.source}</span>
+          {c.result.existing?.uploaded_by ? ` (uploaded by ${c.result.existing.uploaded_by})` : ""}.
+        </p>
+      ) : (
+        <p className="text-xs text-ink-muted mt-1">
+          A different file named <span className="font-medium">{c.result.existing?.source}</span> already
+          exists — this looks like a new version, not a duplicate.
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-1.5 mt-2">
+        <ResolutionButton
+          label="Skip this file"
+          active={c.resolution === "skip"}
+          onClick={onSkip}
+        />
+        <ResolutionButton
+          label={c.result.verdict === "exact_duplicate" ? "Upload anyway" : "Upload as new version"}
+          active={c.resolution === "proceed"}
+          onClick={onProceed}
+        />
+        {isAdmin && c.result.verdict === "same_name_conflict" && (
+          <ResolutionButton
+            label="Replace existing"
+            active={c.resolution === "replace"}
+            onClick={onReplace}
+            danger
+          />
+        )}
+      </div>
+    </div>
+  );
+});
+
+const ResolutionButton = memo(function ResolutionButton({
   label,
   active,
   onClick,
@@ -605,7 +667,7 @@ function ResolutionButton({
       {label}
     </button>
   );
-}
+});
 
 function StatusIcon({ status, active }: { status: string; active: boolean }) {
   if (status === "done") return <span className="text-success shrink-0">✓</span>;

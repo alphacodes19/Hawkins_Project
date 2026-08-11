@@ -14,10 +14,11 @@ import json
 import logging
 import tempfile
 import os
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from auth import db as authdb
 from api.deps import require_uploader, get_current_user
@@ -29,42 +30,125 @@ logger = logging.getLogger("hawkins.upload")
 
 class DuplicateCheckRequest(BaseModel):
     filename: str
-    doc_id: str  # SHA-1 of the file's bytes, computed client-side (Web Crypto),
-                 # truncated to the same 16 hex chars as pipeline/doc_id.py —
-                 # sending only the hash, not the file, keeps this check cheap
-                 # enough to run before the real upload even starts.
+    # Historical field name is `doc_id` for backward-compatibility with
+    # existing frontend callers — its VALUE is a content SHA-1 (first 16
+    # hex chars). Kept as-is so nothing external to this module has to
+    # change name; the batch endpoint below uses the clearer name
+    # `content_sha1`.
+    doc_id: str
+
+
+class DuplicateCheckBatchItem(BaseModel):
+    filename: str
+    content_sha1: str = Field(..., min_length=1)
+
+
+class DuplicateCheckBatchRequest(BaseModel):
+    items: List[DuplicateCheckBatchItem]
+
+
+def _classify(content_sha1: str, filename: str, by_hash: dict, by_name: dict) -> dict:
+    """
+    Shared classification used by both the single and batch endpoints.
+
+    Rules (in order):
+      1. content match, regardless of filename → exact_duplicate
+      2. filename match (case-insensitive) with a DIFFERENT content hash
+         → same_name_conflict
+      3. otherwise → ok
+
+    by_hash / by_name are pre-fetched, ACL-scoped lookup dicts:
+        by_hash[content_sha1] -> [row, ...]   (multiple rows possible; see
+                                                point 7 in the plan — the
+                                                archive already contains
+                                                content-identical files)
+        by_name[filename.lower()] -> [row, ...]
+    """
+    hits = by_hash.get(content_sha1) or []
+    if hits:
+        # Multiple accessible rows can legitimately share a content hash
+        # (existing corpus contains such pairs). Return a stable choice —
+        # the earliest-created row wins so repeated checks give the same
+        # reference — without deleting or merging the others.
+        chosen = min(hits, key=lambda r: r.get("created_at") or "")
+        return {"verdict": "exact_duplicate", "existing": _slim(chosen)}
+
+    name_hits = [
+        r for r in (by_name.get(filename.lower()) or [])
+        if (r.get("content_sha1") or "") != content_sha1
+    ]
+    if name_hits:
+        chosen = min(name_hits, key=lambda r: r.get("created_at") or "")
+        return {"verdict": "same_name_conflict", "existing": _slim(chosen)}
+
+    return {"verdict": "ok", "existing": None}
 
 
 @router.post("/check")
 def check_duplicate(body: DuplicateCheckRequest, user: dict = Depends(get_current_user)):
     """
-    Pre-upload duplicate check — filename + content-hash, the two fast/
-    deterministic stages of exact-duplicate detection. Deliberately does
-    NOT check against every file in the system: it's scoped to
-    allowed_doc_ids(user), the same set the person could already find
-    through search. Checking org-wide would let an upload confirm the
-    existence (and filename) of a document the uploader has no access to —
-    a real information leak for a filename check that's meant to save a
-    little re-processing time, not act as a side-channel into other
-    departments' files.
+    Pre-upload duplicate check for a single file.
+
+    Exact-duplicate detection is based on content_sha1 (the canonical
+    server-computed SHA-1 of the file's bytes, truncated to 16 hex chars).
+    Filename is only a secondary signal — a same-name/different-content
+    upload returns `same_name_conflict`. A rename of the same content
+    still returns `exact_duplicate`.
+
+    ACL: scoped to allowed_doc_ids(user). A user cannot learn that an
+    inaccessible document exists by uploading identical content — hits
+    against documents outside the user's allowed set are filtered out
+    before classification.
     """
     allowed = authdb.allowed_doc_ids(user)
-    files = authdb.list_files()
-    if allowed is not None:
-        files = [f for f in files if f["doc_id"] in allowed]
+    hash_rows = authdb.find_files_by_content_sha1([body.doc_id], allowed)
+    name_rows = authdb.find_files_by_filenames([body.filename], allowed)
 
-    exact = next((f for f in files if f["doc_id"] == body.doc_id), None)
-    if exact:
-        return {"verdict": "exact_duplicate", "existing": _slim(exact)}
+    by_hash = {body.doc_id: hash_rows} if hash_rows else {}
+    by_name = {body.filename.lower(): name_rows} if name_rows else {}
 
-    name_conflict = next(
-        (f for f in files if f["source"].lower() == body.filename.lower() and f["doc_id"] != body.doc_id),
-        None,
-    )
-    if name_conflict:
-        return {"verdict": "same_name_conflict", "existing": _slim(name_conflict)}
+    return _classify(body.doc_id, body.filename, by_hash, by_name)
 
-    return {"verdict": "ok", "existing": None}
+
+@router.post("/check-batch")
+def check_duplicate_batch(
+    body: DuplicateCheckBatchRequest, user: dict = Depends(get_current_user)
+):
+    """
+    Batch pre-upload duplicate check. Same classification rules and ACL
+    scoping as /check, run against N items in a single request instead of
+    forcing the frontend to issue N sequential round-trips.
+
+    Two indexed SQL queries total (one on content_sha1, one on lower(source)),
+    regardless of N. Result order matches input order.
+    """
+    if not body.items:
+        return {"results": []}
+
+    allowed = authdb.allowed_doc_ids(user)
+
+    # De-duplicate the lookup keys so we don't pass the same hash/name
+    # twice into the SQL IN () clause. The classification below is still
+    # per-item.
+    hashes = list({item.content_sha1 for item in body.items})
+    names = list({item.filename for item in body.items})
+
+    hash_rows = authdb.find_files_by_content_sha1(hashes, allowed)
+    name_rows = authdb.find_files_by_filenames(names, allowed)
+
+    by_hash: dict = {}
+    for r in hash_rows:
+        by_hash.setdefault(r["content_sha1"], []).append(r)
+
+    by_name: dict = {}
+    for r in name_rows:
+        by_name.setdefault(r["source"].lower(), []).append(r)
+
+    results = [
+        _classify(item.content_sha1, item.filename, by_hash, by_name)
+        for item in body.items
+    ]
+    return {"results": results}
 
 
 def _slim(f: dict) -> dict:
