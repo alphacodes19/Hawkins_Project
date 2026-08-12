@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, FolderClock } from "lucide-react";
+import { Trash2, FolderClock, ExternalLink, Download } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { filesApi, ApiError } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -131,6 +131,24 @@ export default function UploadsPage() {
                   {f.hidden_by_admin ? " · Hidden by admin" : ""}
                 </p>
               </div>
+              <a
+                href={filesApi.viewUrl(f.doc_id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open in a new tab"
+                aria-label="Open in a new tab"
+                className="shrink-0 text-ink-faint hover:text-accent p-1.5 rounded-md hover:bg-accent-soft transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+              <a
+                href={filesApi.downloadUrl(f.doc_id)}
+                title="Download"
+                aria-label="Download"
+                className="shrink-0 text-ink-faint hover:text-ink p-1.5 rounded-md hover:bg-canvas transition-colors"
+              >
+                <Download className="w-4 h-4" />
+              </a>
               {f.can_delete && (
                 <button
                   onClick={() => setPendingDelete(f)}

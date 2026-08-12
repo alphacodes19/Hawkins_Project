@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, AlertTriangle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { streamChat } from "@/lib/api";
 import type { DocResult, FaithfulnessResult } from "@/lib/types";
 
@@ -117,20 +117,6 @@ export function ChatAnswer({ question, docs, onComplete, cached }: Props) {
             {streaming && (
               <span className="inline-block w-1.5 h-4 bg-accent/70 ml-0.5 align-middle animate-pulseDot" />
             )}
-          </div>
-        )}
-
-        {faithfulness && !faithfulness.is_faithful && (
-          <div className="mt-3 flex gap-2 text-sm text-warning bg-warning-soft border border-warning/20 rounded-md px-3 py-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div>
-              {(faithfulness.issues?.length
-                ? faithfulness.issues
-                : ["Some claims in this answer may not be fully supported by the retrieved documents."]
-              ).map((issue, i) => (
-                <p key={i}>{issue}</p>
-              ))}
-            </div>
           </div>
         )}
       </div>

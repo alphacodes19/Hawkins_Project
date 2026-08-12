@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2, EyeOff, Eye, ChevronDown } from "lucide-react";
-import { adminApi, ApiError } from "@/lib/api";
+import { Trash2, EyeOff, Eye, ChevronDown, ExternalLink, Download } from "lucide-react";
+import { adminApi, filesApi, ApiError } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import type { Department, FileRecord, User } from "@/lib/types";
 
@@ -385,6 +385,26 @@ function FileRow({
           </span>
           <ChevronDown className={`w-4 h-4 shrink-0 ml-3 text-ink-faint transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
+        <a
+          href={filesApi.viewUrl(file.doc_id)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          title="Open in a new tab"
+          aria-label="Open in a new tab"
+          className="shrink-0 text-ink-faint hover:text-accent p-1.5 rounded-md hover:bg-accent-soft transition-colors"
+        >
+          <ExternalLink className="w-4 h-4" />
+        </a>
+        <a
+          href={filesApi.downloadUrl(file.doc_id)}
+          onClick={(e) => e.stopPropagation()}
+          title="Download"
+          aria-label="Download"
+          className="shrink-0 text-ink-faint hover:text-ink p-1.5 rounded-md hover:bg-canvas transition-colors"
+        >
+          <Download className="w-4 h-4" />
+        </a>
       </div>
 
       {open && (
@@ -429,6 +449,22 @@ function FileRow({
           </div>
 
           <div className="flex items-center gap-2">
+            <a
+              href={filesApi.viewUrl(file.doc_id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-accent hover:text-accent-hover border border-accent/30 rounded-md px-3 py-1.5 flex items-center gap-1"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Open in new tab
+            </a>
+            <a
+              href={filesApi.downloadUrl(file.doc_id)}
+              className="text-xs font-medium text-ink-muted hover:text-ink border border-border rounded-md px-3 py-1.5 flex items-center gap-1"
+            >
+              <Download className="w-3 h-3" />
+              Download
+            </a>
             <button
               onClick={handleSave}
               className="text-xs font-medium text-white bg-accent hover:bg-accent-hover rounded-md px-3 py-1.5"
