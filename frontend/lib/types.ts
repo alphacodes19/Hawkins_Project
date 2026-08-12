@@ -5,6 +5,7 @@ export interface User {
   dept_id: number | null;
   dept_name: string | null;
   is_active: boolean;
+  has_avatar: boolean;
 }
 
 export interface Department {
@@ -21,7 +22,35 @@ export interface FileRecord {
   is_public: number;
   hidden_by_admin: number;
   created_at: string;
+  content_sha1?: string | null;
   departments: { id: number; name: string }[];
+  /** Present only on GET /api/files/mine — a UI convenience, not the
+   *  authorization boundary (the backend re-checks ownership on delete). */
+  can_delete?: boolean;
+}
+
+export interface SearchHistoryQuery {
+  id: number;
+  query: string;
+}
+
+export interface SearchHistorySession {
+  session_id: string;
+  date_label: string;
+  start_time: string;
+  queries: SearchHistoryQuery[];
+}
+
+export interface AuditLogEntry {
+  id: number;
+  created_at: string;
+  actor_username: string;
+  action: string;
+  target_type: string;
+  target_id: string | null;
+  description: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
 }
 
 export interface MatchedChunk {

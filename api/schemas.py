@@ -1,5 +1,6 @@
-from typing import Optional
-from pydantic import BaseModel, Field
+from typing import Literal, Optional
+
+from pydantic import BaseModel, Field, model_validator
 
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -20,9 +21,23 @@ class UserOut(BaseModel):
     dept_id: Optional[int] = None
     dept_name: Optional[str] = None
     is_active: bool = True
+    has_avatar: bool = False
 
     class Config:
         extra = "ignore"
+
+    @model_validator(mode="before")
+    @classmethod
+    def _derive_has_avatar(cls, data):
+        """
+        Callers (login/me/avatar endpoints) pass through the raw user dict
+        from auth.db, which carries `avatar_path` (a server filesystem
+        path) — never something we want in the JSON response. This derives
+        the public `has_avatar` boolean from it.
+        """
+        if isinstance(data, dict) and "has_avatar" not in data:
+            data = {**data, "has_avatar": bool(data.get("avatar_path"))}
+        return data
 
 
 # ── Search / chat ────────────────────────────────────────────────────────────
@@ -71,6 +86,11 @@ class FileDeptUpdate(BaseModel):
 class FileFlagsUpdate(BaseModel):
     is_public: Optional[bool] = None
     hidden_by_admin: Optional[bool] = None
+
+
+class BulkFileActionRequest(BaseModel):
+    doc_ids: list[str] = Field(min_length=1, max_length=500)
+    action: Literal["delete", "hide", "unhide"]
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────

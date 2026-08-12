@@ -3,6 +3,8 @@ import type {
   Department,
   FileRecord,
   SearchResponse,
+  SearchHistorySession,
+  AuditLogEntry,
   ChatStreamEvent,
 } from "./types";
 
@@ -57,6 +59,13 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify({ old_password, new_password }),
     }),
+  uploadAvatar: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<User>("/api/auth/avatar", { method: "POST", body: form });
+  },
+  removeAvatar: () => request<User>("/api/auth/avatar", { method: "DELETE" }),
+  avatarUrl: (userId: number) => `${API_BASE}/api/auth/avatar/${userId}`,
 };
 
 // ── Search ───────────────────────────────────────────────────────────────────
@@ -71,7 +80,9 @@ export const searchApi = {
       method: "POST",
       body: JSON.stringify({ session_id, query, session_start }),
     }),
-  history: () => request<any[]>("/api/search/history"),
+  history: () => request<SearchHistorySession[]>("/api/search/history"),
+  deleteHistoryEntry: (entryId: number) =>
+    request<{ ok: boolean }>(`/api/search/history/${entryId}`, { method: "DELETE" }),
   resolveSources: (sources: string[]) =>
     request<ResolvedSource[]>("/api/search/resolve-sources", {
       method: "POST",
@@ -133,6 +144,23 @@ export const departmentsApi = {
 };
 
 // ── Admin ────────────────────────────────────────────────────────────────────
+export interface AdminFileFilters {
+  q?: string;
+  uploaded_by?: string;
+  department_id?: number;
+  date_from?: string;
+  date_to?: string;
+  sort?: "newest" | "oldest";
+  limit?: number;
+}
+
+export interface BulkFileActionResult {
+  doc_id: string;
+  ok: boolean;
+  error?: string;
+  warnings?: string[];
+}
+
 export const adminApi = {
   listDepartments: () => request<Department[]>("/api/admin/departments"),
   addDepartment: (name: string) =>
@@ -165,7 +193,14 @@ export const adminApi = {
   deleteUser: (id: number) =>
     request<{ ok: boolean }>(`/api/admin/users/${id}`, { method: "DELETE" }),
 
-  listFiles: () => request<FileRecord[]>("/api/admin/files"),
+  listFiles: (filters: AdminFileFilters = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") params.set(k, String(v));
+    });
+    const qs = params.toString();
+    return request<FileRecord[]>(`/api/admin/files${qs ? `?${qs}` : ""}`);
+  },
   setFileDepartments: (docId: string, dept_ids: number[]) =>
     request<{ ok: boolean }>(`/api/admin/files/${encodeURIComponent(docId)}/departments`, {
       method: "PATCH",
@@ -176,6 +211,25 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
+  deleteFilePermanently: (docId: string) =>
+    request<{ ok: boolean; warnings: string[] }>(`/api/admin/files/${encodeURIComponent(docId)}`, {
+      method: "DELETE",
+    }),
+  bulkFileAction: (docIds: string[], action: "delete" | "hide" | "unhide") =>
+    request<{ results: BulkFileActionResult[] }>("/api/admin/files/bulk", {
+      method: "POST",
+      body: JSON.stringify({ doc_ids: docIds, action }),
+    }),
+
+  auditLog: (filters: { actor?: string; action?: string; date_from?: string; date_to?: string; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") params.set(k, String(v));
+    });
+    const qs = params.toString();
+    return request<AuditLogEntry[]>(`/api/admin/audit-log${qs ? `?${qs}` : ""}`);
+  },
+  auditLogActions: () => request<string[]>("/api/admin/audit-log/actions"),
 };
 
 // ── Files ────────────────────────────────────────────────────────────────────
@@ -211,6 +265,18 @@ export const filesApi = {
     `${API_BASE}/api/files/email-attachment/view?doc_id=${encodeURIComponent(docId)}&index=${index}`,
   emailAttachmentDownloadUrl: (docId: string, index: number) =>
     `${API_BASE}/api/files/email-attachment/download?doc_id=${encodeURIComponent(docId)}&index=${index}`,
+  mine: (filters: { date_from?: string; date_to?: string; sort?: "newest" | "oldest"; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") params.set(k, String(v));
+    });
+    const qs = params.toString();
+    return request<FileRecord[]>(`/api/files/mine${qs ? `?${qs}` : ""}`);
+  },
+  deleteFile: (docId: string) =>
+    request<{ ok: boolean; warnings: string[] }>(`/api/files?doc_id=${encodeURIComponent(docId)}`, {
+      method: "DELETE",
+    }),
 };
 
 // ── Upload ───────────────────────────────────────────────────────────────────

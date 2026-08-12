@@ -5,8 +5,9 @@ import { useAuth } from "@/context/auth-context";
 import { DepartmentsTab } from "@/components/admin/DepartmentsTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { FilesTab } from "@/components/admin/FilesTab";
+import { AuditLogTab } from "@/components/admin/AuditLogTab";
 
-const TABS = ["Files", "Users", "Departments"] as const;
+const TABS = ["Files", "Users", "Departments", "Audit Log"] as const;
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="w-[92%] max-w-5xl mx-auto px-4 sm:px-6 py-8">
+    <div className="w-[92%] max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <h1 className="text-xl font-semibold text-ink mb-1">Admin Control Panel</h1>
       <p className="text-sm text-ink-muted mb-6">Signed in as {user?.username}</p>
 
@@ -45,6 +46,7 @@ export default function AdminPage() {
       {tab === "Files" && <FilesTab />}
       {tab === "Users" && <UsersTab />}
       {tab === "Departments" && <DepartmentsTab />}
+      {tab === "Audit Log" && <AuditLogTab />}
     </div>
   );
 }

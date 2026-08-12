@@ -28,6 +28,7 @@ Visibility rules, in order:
   6. otherwise             → invisible
 """
 
+import json
 import os
 import re
 import sqlite3
@@ -119,6 +120,47 @@ CREATE INDEX IF NOT EXISTS idx_file_dept_file ON file_dept(file_id);
 -- existing databases whose files table pre-dates the content_sha1 column,
 -- because CREATE INDEX ... ON files(content_sha1) is executed by
 -- executescript(SCHEMA) before the column exists.
+
+-- One-row-per-key store for one-shot migration flags etc. Kept generic
+-- (key/value) rather than one boolean column per migration so future
+-- one-time migrations don't each need their own ALTER TABLE.
+CREATE TABLE IF NOT EXISTS schema_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
+-- One row per search query (not per session) so an individual query can be
+-- deleted without touching the rest of its session. session_id/date_label/
+-- start_time are denormalized copies of what the old per-user JSON file
+-- stored, kept so the existing session-grouping UI needs no redesign.
+CREATE TABLE IF NOT EXISTS search_history (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    username   TEXT NOT NULL,
+    session_id TEXT NOT NULL,
+    date_label TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    query      TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_search_history_username ON search_history(username);
+CREATE INDEX IF NOT EXISTS idx_search_history_session   ON search_history(username, session_id);
+
+-- Append-only. No update_audit_log()/delete_audit_log() function exists on
+-- purpose — the admin UI has no path to edit or remove an entry.
+CREATE TABLE IF NOT EXISTS audit_log (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at     TEXT NOT NULL,
+    actor_username TEXT NOT NULL,
+    action         TEXT NOT NULL,
+    target_type    TEXT NOT NULL,
+    target_id      TEXT,
+    description    TEXT NOT NULL,
+    before_json    TEXT,
+    after_json     TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_actor      ON audit_log(actor_username);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action     ON audit_log(action);
 """
 
 
@@ -136,12 +178,90 @@ def _ensure_content_sha1_column(conn):
     conn.execute("CREATE INDEX IF NOT EXISTS idx_files_content_sha1 ON files(content_sha1)")
 
 
+def _ensure_avatar_column(conn):
+    """One-shot ALTER for databases that pre-date profile photos. Same
+    additive/idempotent pattern as _ensure_content_sha1_column above."""
+    cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+    if "avatar_path" not in cols:
+        conn.execute("ALTER TABLE users ADD COLUMN avatar_path TEXT")
+
+
+def _migrate_search_history_from_json(conn):
+    """
+    One-time import of the legacy data/processed/search_history/<user>_sessions.json
+    files into the search_history table.
+
+    Gated by schema_meta so it runs exactly once per database, ever — not
+    "once per user" and not "whenever the JSON file still exists". Gating on
+    JSON-file-still-present would be wrong: a user who deletes all their
+    migrated history would look "unmigrated" again on the next restart and
+    have their deleted entries silently resurrected from the JSON file.
+    Gating on a single global flag avoids that entirely.
+
+    Idempotent even if it were somehow re-run: the per-query existence
+    check below skips rows already present, so a repeat run cannot create
+    duplicates.
+    """
+    already = conn.execute(
+        "SELECT 1 FROM schema_meta WHERE key = 'search_history_migrated_from_json'"
+    ).fetchone()
+    if already:
+        return
+
+    hist_dir = os.path.join(config.BASE_DIR, "data", "processed", "search_history")
+    if os.path.isdir(hist_dir):
+        usernames = [r["username"] for r in conn.execute("SELECT username FROM users")]
+        for username in usernames:
+            safe = "".join(c if c.isalnum() else "_" for c in username)
+            path = os.path.join(hist_dir, f"{safe}_sessions.json")
+            if not os.path.exists(path):
+                continue
+            try:
+                with open(path, encoding="utf-8") as f:
+                    sessions = json.load(f)
+            except Exception:
+                continue  # a corrupt/unreadable file is skipped, not fatal to migration
+
+            # The JSON list is newest-session-first (new sessions are
+            # inserted at index 0). Insert oldest-first here so the
+            # autoincrement id order reproduces the same recency ordering
+            # that list_search_history() below relies on.
+            for session in reversed(sessions):
+                sid = session.get("session_id")
+                date_label = session.get("date_label", "")
+                start_time = session.get("start_time", "")
+                if not sid:
+                    continue
+                for query in session.get("queries", []):
+                    if not query:
+                        continue
+                    exists = conn.execute(
+                        "SELECT 1 FROM search_history WHERE username=? AND session_id=? AND query=?",
+                        (username, sid, query),
+                    ).fetchone()
+                    if exists:
+                        continue
+                    conn.execute(
+                        "INSERT INTO search_history "
+                        "(username, session_id, date_label, start_time, query, created_at) "
+                        "VALUES (?, ?, ?, ?, ?, ?)",
+                        (username, sid, date_label, start_time, query, _now()),
+                    )
+
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_meta (key, value) "
+        "VALUES ('search_history_migrated_from_json', ?)",
+        (_now(),),
+    )
+
+
 def init_db():
     """Create tables and seed the first admin + starter departments. Idempotent."""
     conn = get_conn()
     try:
         conn.executescript(SCHEMA)
         _ensure_content_sha1_column(conn)
+        _ensure_avatar_column(conn)
 
         n_depts = conn.execute("SELECT COUNT(*) FROM departments").fetchone()[0]
         if n_depts == 0:
@@ -157,6 +277,13 @@ def init_db():
                 "VALUES (?, ?, 'admin', NULL, ?)",
                 (DEFAULT_ADMIN_USERNAME, hash_password(DEFAULT_ADMIN_PASSWORD), _now()),
             )
+        conn.commit()
+
+        # Runs after the block above so a fresh database's seeded admin user
+        # already exists (irrelevant to migration itself, but keeps all
+        # first-run setup inside one predictable sequence). Separate commit
+        # since this does its own multi-statement work.
+        _migrate_search_history_from_json(conn)
         conn.commit()
     finally:
         conn.close()
@@ -248,7 +375,7 @@ def authenticate(username: str, password: str):
     try:
         row = conn.execute(
             "SELECT u.id, u.username, u.password_hash, u.role, u.dept_id, u.is_active, "
-            "       d.name AS dept_name "
+            "       u.avatar_path, d.name AS dept_name "
             "FROM users u LEFT JOIN departments d ON d.id = u.dept_id "
             "WHERE u.username = ?",
             (username.strip(),),
@@ -273,11 +400,36 @@ def list_users() -> list:
     conn = get_conn()
     try:
         return [dict(r) for r in conn.execute(
-            "SELECT u.id, u.username, u.role, u.dept_id, u.is_active, "
+            "SELECT u.id, u.username, u.role, u.dept_id, u.is_active, u.avatar_path, "
             "       d.name AS dept_name "
             "FROM users u LEFT JOIN departments d ON d.id = u.dept_id "
             "ORDER BY u.username"
         )]
+    finally:
+        conn.close()
+
+
+def get_user_by_id(user_id: int):
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT u.id, u.username, u.role, u.dept_id, u.is_active, u.avatar_path, "
+            "       d.name AS dept_name "
+            "FROM users u LEFT JOIN departments d ON d.id = u.dept_id "
+            "WHERE u.id = ?",
+            (user_id,),
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def set_user_avatar(user_id: int, avatar_path):
+    """avatar_path is None to clear the photo (fall back to the initial)."""
+    conn = get_conn()
+    try:
+        conn.execute("UPDATE users SET avatar_path = ? WHERE id = ?", (avatar_path, user_id))
+        conn.commit()
     finally:
         conn.close()
 
@@ -487,15 +639,68 @@ def find_files_by_filenames(filenames, allowed):
     return [r for r in result if r["doc_id"] in allowed]
 
 
-def list_files() -> list:
-    """Every registered file with its department tags. Used by the admin panel."""
+def list_files(*, q=None, uploaded_by=None, dept_id=None, date_from=None,
+               date_to=None, sort=None, limit=None) -> list:
+    """
+    Every registered file with its department tags. Used by the admin panel.
+
+    All filter kwargs default to None/unset, and `sort=None` preserves the
+    original `ORDER BY source` behaviour — every existing caller
+    (scripts/*, pages/1_Admin.py, the test suite) calls this with zero
+    arguments and must see identical results to before. The filtering
+    below is additive, not a replacement of the old query shape.
+
+      q          — case-insensitive filename substring match
+      uploaded_by— exact username match
+      dept_id    — only files tagged with this department
+      date_from / date_to — 'YYYY-MM-DD', inclusive, matched against the
+                   UTC date portion of created_at
+      sort       — None (default, by source) | "newest" | "oldest"
+      limit      — cap on rows returned, applied server-side so the admin
+                   UI never has to pull the entire table to filter client-side
+    """
     conn = get_conn()
     try:
-        files = [dict(r) for r in conn.execute(
-            "SELECT id, doc_id, source, uploaded_by, is_public, hidden_by_admin, "
-            "       created_at, content_sha1 "
-            "FROM files ORDER BY source"
-        )]
+        clauses, params = [], []
+        if q:
+            clauses.append("lower(f.source) LIKE ?"); params.append(f"%{q.lower()}%")
+        if uploaded_by:
+            clauses.append("f.uploaded_by = ?"); params.append(uploaded_by)
+        if date_from:
+            clauses.append("date(f.created_at) >= date(?)"); params.append(date_from)
+        if date_to:
+            clauses.append("date(f.created_at) <= date(?)"); params.append(date_to)
+
+        if sort == "newest":
+            order = "f.created_at DESC"
+        elif sort == "oldest":
+            order = "f.created_at ASC"
+        else:
+            order = "f.source ASC"
+
+        limit_sql = ""
+        if limit:
+            limit_sql = "LIMIT ?"
+
+        if dept_id:
+            clauses.append("fd.dept_id = ?"); params.append(dept_id)
+            where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+            query = (
+                "SELECT DISTINCT f.id, f.doc_id, f.source, f.uploaded_by, f.is_public, "
+                "       f.hidden_by_admin, f.created_at, f.content_sha1 "
+                "FROM files f JOIN file_dept fd ON fd.file_id = f.id "
+                f"{where} ORDER BY {order} {limit_sql}"
+            )
+        else:
+            where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+            query = (
+                "SELECT f.id, f.doc_id, f.source, f.uploaded_by, f.is_public, "
+                "       f.hidden_by_admin, f.created_at, f.content_sha1 "
+                f"FROM files f {where} ORDER BY {order} {limit_sql}"
+            )
+
+        run_params = list(params) + ([limit] if limit else [])
+        files = [dict(r) for r in conn.execute(query, run_params)]
         tags = {}
         for r in conn.execute(
             "SELECT fd.file_id, d.id AS dept_id, d.name "
@@ -582,5 +787,195 @@ def allowed_doc_ids(user: dict):
             (username, dept_id),
         ).fetchall()
         return {r["doc_id"] for r in rows}
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SEARCH HISTORY
+# ─────────────────────────────────────────────────────────────────────────────
+def add_search_history(username: str, session_id: str, date_label: str,
+                        start_time: str, query: str):
+    """
+    Records one query. Two behaviours preserved from the old JSON-file
+    version (api/services.py's upsert_session_query):
+      - a query already logged for this exact session is not duplicated.
+      - a brand-new session pushes the user's oldest session out once they
+        have more than 50 sessions (previously `sessions[:50]` on write).
+    """
+    conn = get_conn()
+    try:
+        dup = conn.execute(
+            "SELECT 1 FROM search_history WHERE username=? AND session_id=? AND query=?",
+            (username, session_id, query),
+        ).fetchone()
+        if dup:
+            return
+
+        is_new_session = not conn.execute(
+            "SELECT 1 FROM search_history WHERE username=? AND session_id=?",
+            (username, session_id),
+        ).fetchone()
+
+        conn.execute(
+            "INSERT INTO search_history "
+            "(username, session_id, date_label, start_time, query, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (username, session_id, date_label, start_time, query, _now()),
+        )
+
+        if is_new_session:
+            session_rows = conn.execute(
+                "SELECT session_id, MIN(id) AS first_id FROM search_history "
+                "WHERE username = ? GROUP BY session_id ORDER BY first_id DESC",
+                (username,),
+            ).fetchall()
+            if len(session_rows) > 50:
+                stale = [r["session_id"] for r in session_rows[50:]]
+                conn.executemany(
+                    "DELETE FROM search_history WHERE username = ? AND session_id = ?",
+                    [(username, sid) for sid in stale],
+                )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_search_history(username: str) -> list:
+    """
+    Sessions newest-first (by each session's first-ever query), each with
+    its queries oldest-first — same shape/ordering the old JSON version
+    produced, except each query now carries its own row `id` so the
+    frontend can target a single entry for deletion.
+    """
+    conn = get_conn()
+    try:
+        rows = conn.execute(
+            "SELECT id, session_id, date_label, start_time, query "
+            "FROM search_history WHERE username = ? ORDER BY id ASC",
+            (username,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    sessions: dict = {}
+    for r in rows:
+        sid = r["session_id"]
+        if sid not in sessions:
+            sessions[sid] = {
+                "session_id": sid,
+                "date_label": r["date_label"],
+                "start_time": r["start_time"],
+                "queries": [],
+                "_first_id": r["id"],
+            }
+        sessions[sid]["queries"].append({"id": r["id"], "query": r["query"]})
+
+    ordered = sorted(sessions.values(), key=lambda s: -s["_first_id"])
+    for s in ordered:
+        del s["_first_id"]
+    return ordered
+
+
+def delete_search_history_entry(entry_id: int, username: str) -> bool:
+    """
+    Permanently deletes one search_history row. Ownership is enforced in
+    the SQL itself (both id AND username in the WHERE) rather than by a
+    separate "is this mine?" check beforehand — a caller cannot delete a
+    row it didn't already prove it owns via this single statement.
+    Returns True if a row was actually deleted.
+    """
+    conn = get_conn()
+    try:
+        cur = conn.execute(
+            "DELETE FROM search_history WHERE id = ? AND username = ?",
+            (entry_id, username),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AUDIT LOG
+# ─────────────────────────────────────────────────────────────────────────────
+def record_audit(actor_username: str, action: str, target_type: str,
+                  target_id=None, description: str = "", before=None, after=None):
+    """
+    Append one audit entry. Never raises on a serialization hiccup for
+    before/after (falls back to a string) — a broken audit *write* must
+    never be the reason a legitimate admin action fails outright, but the
+    action itself is still recorded.
+    """
+    def _safe_json(value):
+        if value is None:
+            return None
+        try:
+            return json.dumps(value, default=str)
+        except Exception:
+            return json.dumps(str(value))
+
+    conn = get_conn()
+    try:
+        conn.execute(
+            "INSERT INTO audit_log "
+            "(created_at, actor_username, action, target_type, target_id, "
+            " description, before_json, after_json) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                _now(), actor_username, action, target_type,
+                str(target_id) if target_id is not None else None,
+                description, _safe_json(before), _safe_json(after),
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_audit_log(limit: int = 200, actor_username=None, action=None,
+                    date_from=None, date_to=None) -> list:
+    conn = get_conn()
+    try:
+        clauses, params = [], []
+        if actor_username:
+            clauses.append("actor_username = ?"); params.append(actor_username)
+        if action:
+            clauses.append("action = ?"); params.append(action)
+        if date_from:
+            clauses.append("date(created_at) >= date(?)"); params.append(date_from)
+        if date_to:
+            clauses.append("date(created_at) <= date(?)"); params.append(date_to)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+
+        rows = conn.execute(
+            f"SELECT id, created_at, actor_username, action, target_type, target_id, "
+            f"       description, before_json, after_json "
+            f"FROM audit_log {where} ORDER BY id DESC LIMIT ?",
+            (*params, max(1, min(limit, 2000))),
+        ).fetchall()
+
+        out = []
+        for r in rows:
+            d = dict(r)
+            for key in ("before_json", "after_json"):
+                raw = d.pop(key)
+                out_key = key.replace("_json", "")
+                d[out_key] = json.loads(raw) if raw else None
+            out.append(d)
+        return out
+    finally:
+        conn.close()
+
+
+def list_audit_actions() -> list:
+    """Distinct action types actually present, for the filter dropdown —
+    avoids hardcoding a list in the frontend that could drift from reality."""
+    conn = get_conn()
+    try:
+        return [r["action"] for r in conn.execute(
+            "SELECT DISTINCT action FROM audit_log ORDER BY action"
+        )]
     finally:
         conn.close()

@@ -10,10 +10,12 @@ import {
   UploadCloud,
   LogOut,
   User,
+  FolderClock,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { authApi } from "@/lib/api";
 import { UploadDialog } from "./UploadDialog";
 import { HistoryPanel } from "./HistoryPanel";
 
@@ -95,6 +97,15 @@ export function Sidebar() {
             {!collapsed && "Upload document"}
           </button>
         )}
+        {canUpload && (
+          <NavItem
+            href="/uploads"
+            icon={FolderClock}
+            label="My Uploads"
+            active={pathname === "/uploads"}
+            collapsed={collapsed}
+          />
+        )}
 
         {!collapsed && (
           <div className="pt-2 mt-2 border-t border-border">
@@ -104,13 +115,25 @@ export function Sidebar() {
       </nav>
 
       <div className={`mt-auto py-4 border-t border-border space-y-1 ${collapsed ? "px-2" : "px-3"}`}>
-        <NavItem
+        <Link
           href="/profile"
-          icon={User}
-          label="My Profile"
-          active={pathname === "/profile"}
-          collapsed={collapsed}
-        />
+          title="My Profile"
+          className={`flex items-center gap-2.5 text-sm rounded-md transition-colors ${
+            pathname === "/profile" ? "bg-accent-soft text-accent-hover font-medium" : "text-ink-muted hover:bg-canvas"
+          } ${collapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"}`}
+        >
+          {user.has_avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={authApi.avatarUrl(user.id)}
+              alt=""
+              className="w-4 h-4 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <User className="w-4 h-4 shrink-0" />
+          )}
+          {!collapsed && "My Profile"}
+        </Link>
         <button
           onClick={handleSignOut}
           title="Sign out"

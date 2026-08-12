@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { searchApi } from "@/lib/api";
-
-interface SessionEntry {
-  session_id: string;
-  date_label: string;
-  start_time: string;
-  queries: string[];
-}
+import { ConfirmDialog } from "./ConfirmDialog";
+import type { SearchHistorySession } from "@/lib/types";
 
 export function HistoryPanel() {
   const [open, setOpen] = useState(false);
-  const [sessions, setSessions] = useState<SessionEntry[] | null>(null);
+  const [sessions, setSessions] = useState<SearchHistorySession[] | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +20,18 @@ export function HistoryPanel() {
 
   function goToQuery(q: string) {
     router.push(`/?q=${encodeURIComponent(q)}`);
+  }
+
+  async function handleDelete(entryId: number) {
+    // Remove locally after the request succeeds, and drop any session
+    // that's left with zero queries so it disappears from the list rather
+    // than lingering as an empty group.
+    await searchApi.deleteHistoryEntry(entryId);
+    setSessions((prev) =>
+      (prev ?? [])
+        .map((s) => ({ ...s, queries: s.queries.filter((q) => q.id !== entryId) }))
+        .filter((s) => s.queries.length > 0)
+    );
   }
 
   return (
@@ -53,7 +61,9 @@ export function HistoryPanel() {
           ) : sessions.length === 0 ? (
             <p className="text-xs text-ink-faint px-2 py-1">No search history yet.</p>
           ) : (
-            sessions.slice(0, 30).map((s) => <SessionGroup key={s.session_id} session={s} onPick={goToQuery} />)
+            sessions
+              .slice(0, 30)
+              .map((s) => <SessionGroup key={s.session_id} session={s} onPick={goToQuery} onDelete={handleDelete} />)
           )}
         </div>
       )}
@@ -61,7 +71,15 @@ export function HistoryPanel() {
   );
 }
 
-function SessionGroup({ session, onPick }: { session: SessionEntry; onPick: (q: string) => void }) {
+function SessionGroup({
+  session,
+  onPick,
+  onDelete,
+}: {
+  session: SearchHistorySession;
+  onPick: (q: string) => void;
+  onDelete: (entryId: number) => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -75,17 +93,58 @@ function SessionGroup({ session, onPick }: { session: SessionEntry; onPick: (q: 
       </button>
       {open && (
         <div className="pb-1.5 space-y-0.5">
-          {session.queries.map((q, i) => (
-            <button
-              key={i}
-              onClick={() => onPick(q)}
-              className="w-full text-left px-3 py-1 text-xs text-ink-faint hover:text-accent hover:bg-canvas rounded-md truncate"
-              title={q}
-            >
-              {q.length > 55 ? q.slice(0, 55) + "…" : q}
-            </button>
+          {session.queries.map((q) => (
+            <HistoryEntryRow key={q.id} id={q.id} query={q.query} onPick={onPick} onDelete={onDelete} />
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+function HistoryEntryRow({
+  id,
+  query,
+  onPick,
+  onDelete,
+}: {
+  id: number;
+  query: string;
+  onPick: (q: string) => void;
+  onDelete: (entryId: number) => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div className="group flex items-center px-3 py-1 rounded-md hover:bg-canvas">
+      <button
+        onClick={() => onPick(query)}
+        className="flex-1 min-w-0 text-left text-xs text-ink-faint hover:text-accent truncate"
+        title={query}
+      >
+        {query.length > 48 ? query.slice(0, 48) + "…" : query}
+      </button>
+      <button
+        onClick={() => setConfirming(true)}
+        title="Delete this search"
+        aria-label="Delete this search"
+        className="shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 text-ink-faint hover:text-danger p-0.5 rounded transition-opacity"
+      >
+        <Trash2 className="w-3 h-3" />
+      </button>
+
+      {confirming && (
+        <ConfirmDialog
+          title="Delete this search?"
+          message="This permanently removes it from your search history. This can't be undone."
+          confirmLabel="Delete"
+          danger
+          onConfirm={() => {
+            setConfirming(false);
+            onDelete(id);
+          }}
+          onCancel={() => setConfirming(false)}
+        />
       )}
     </div>
   );

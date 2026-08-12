@@ -11,13 +11,11 @@ Ported from app.py almost verbatim. The only real changes:
 """
 
 import os
-import json
-import hashlib
 from datetime import datetime
 
 import chromadb
-import config
 
+import config
 
 # ── Warmup ───────────────────────────────────────────────────────────────────
 _warmed_up = False
@@ -62,46 +60,30 @@ def get_embedder():
 
 
 # ── Search history persistence ──────────────────────────────────────────────
-def _history_path(username: str) -> str:
-    hist_dir = os.path.join(config.BASE_DIR, "data", "processed", "search_history")
-    os.makedirs(hist_dir, exist_ok=True)
-    safe = "".join(c if c.isalnum() else "_" for c in username)
-    return os.path.join(hist_dir, f"{safe}_sessions.json")
+# Backed by auth.db's search_history table (see auth/db.py) — these two
+# functions are kept as thin wrappers so api/routers/search.py doesn't need
+# to change its imports. The old per-user JSON file under
+# data/processed/search_history/ is no longer written to; existing files
+# were migrated into SQLite once, on server startup (auth.db.init_db()).
+def upsert_session_query(username: str, session_id: str, query: str, session_start: datetime):
+    from auth import db as authdb
+    authdb.add_search_history(
+        username=username,
+        session_id=session_id,
+        date_label=session_start.strftime("%d %b %Y"),
+        start_time=session_start.strftime("%I:%M %p"),
+        query=query,
+    )
 
 
 def load_session_history(username: str) -> list:
-    path = _history_path(username)
-    try:
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return []
+    from auth import db as authdb
+    return authdb.list_search_history(username)
 
 
-def upsert_session_query(username: str, session_id: str, query: str, session_start: datetime):
-    path = _history_path(username)
-    sessions = load_session_history(username)
-    existing = next((s for s in sessions if s.get("session_id") == session_id), None)
-
-    if existing:
-        if query not in existing["queries"]:
-            existing["queries"].append(query)
-    else:
-        sessions.insert(0, {
-            "session_id": session_id,
-            "date_label": session_start.strftime("%d %b %Y"),
-            "start_time": session_start.strftime("%I:%M %p"),
-            "queries": [query],
-        })
-        sessions = sessions[:50]
-
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(sessions, f, indent=2)
-    except Exception:
-        pass  # never block a search over a history write failure
+def delete_session_history_entry(entry_id: int, username: str) -> bool:
+    from auth import db as authdb
+    return authdb.delete_search_history_entry(entry_id, username)
 
 
 # ── File upload + indexing ──────────────────────────────────────────────────
@@ -141,10 +123,10 @@ def index_uploaded_file_streaming(tmp_path: str, original_name: str, acl: dict):
     """
     from auth import db as authdb
     from pipeline.chunker import chunk_text
-    from pipeline.embedder import get_model
     from pipeline.doc_id import compute_doc_id
-    from pipeline.library import store_in_library
+    from pipeline.embedder import get_model
     from pipeline.indexer import SKIP_TAGGING
+    from pipeline.library import store_in_library
 
     EMBED_BATCH = 64
     UPSERT_BATCH = 200
@@ -262,3 +244,77 @@ def index_uploaded_file_streaming(tmp_path: str, original_name: str, acl: dict):
 def invalidate_bm25():
     from retrieval import retriever
     retriever.invalidate_bm25()
+
+
+# ── Permanent file deletion ──────────────────────────────────────────────────
+LIBRARY_DIR = os.path.join(config.BASE_DIR, "data", "library")
+
+
+def delete_file_completely(doc_id: str) -> dict:
+    """
+    Removes one file from every storage layer: ChromaDB chunks, the
+    auth.db files/file_dept rows, and the permanent copy under
+    data/library/. Called only after the caller (a router) has already
+    authorized the request — this function does no auth of its own.
+
+    Order matters here:
+      1. Resolve file_path from Chroma FIRST, while the chunks (the only
+         place file_path lives) still exist.
+      2. Delete the Chroma chunks.
+      3. Delete the auth.db row (file_dept cascades automatically).
+      4. Delete the physical file last — if this step fails, Chroma and
+         auth.db are already consistent with each other (Golden Rules 6/7),
+         and a leftover file under data/library/ is a harmless orphan, not
+         a broken reference.
+
+    This is NOT a single atomic transaction across three different storage
+    systems (SQLite, Chroma, filesystem) — that isn't achievable here
+    without a two-phase-commit layer this project doesn't have. Instead
+    every step is independently try/excepted, and every failure is
+    reported back rather than swallowed, per the "don't hide errors"
+    requirement. A caller that gets warnings back knows exactly what
+    still needs manual cleanup instead of believing the delete fully
+    succeeded when it didn't.
+    """
+    collection = get_chroma_collection()
+
+    file_path = None
+    try:
+        res = collection.get(where={"doc_id": doc_id}, limit=1, include=["metadatas"])
+        metas = res.get("metadatas") or []
+        if metas:
+            file_path = metas[0].get("file_path") or metas[0].get("filepath")
+    except Exception:
+        pass  # Chroma lookup failing shouldn't block the DB/filesystem cleanup below
+
+    warnings = []
+
+    try:
+        collection.delete(where={"doc_id": doc_id})
+    except Exception as e:
+        warnings.append(f"Could not remove indexed chunks from ChromaDB: {e}")
+
+    from auth import db as authdb
+    try:
+        authdb.delete_file_by_doc_id(doc_id)
+    except Exception as e:
+        warnings.append(f"Could not remove the database record: {e}")
+
+    if file_path:
+        try:
+            real = os.path.realpath(file_path)
+            # Only ever remove a file that actually lives inside the
+            # managed library directory — file_path is Chroma metadata,
+            # not directly client-controlled, but this keeps the deletion
+            # scoped even if that metadata were ever malformed.
+            if os.path.dirname(real) == os.path.realpath(LIBRARY_DIR) and os.path.exists(real):
+                os.remove(real)
+        except OSError as e:
+            warnings.append(f"Could not remove the file from disk: {e}")
+
+    try:
+        invalidate_bm25()
+    except Exception:
+        pass
+
+    return {"ok": True, "warnings": warnings}

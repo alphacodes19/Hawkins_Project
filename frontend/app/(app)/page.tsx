@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { History, Sparkles, ChevronDown } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { DocumentResults } from "@/components/DocumentResults";
 import { ChatAnswer } from "@/components/ChatAnswer";
@@ -145,7 +146,10 @@ export default function SearchPage() {
 
         {showPrevious && prevQueries.length > 0 && (
           <div className="border-t border-border pt-5">
-            <h2 className="text-sm font-semibold text-ink mb-3">Previous searches</h2>
+            <div className="flex items-center gap-1.5 mb-3">
+              <History className="w-4 h-4 text-ink-faint" />
+              <h2 className="text-sm font-semibold text-ink">Previous searches</h2>
+            </div>
             <div className="space-y-2">
               {prevQueries.map((q) => (
                 <PreviousSearch
@@ -178,33 +182,29 @@ function PreviousSearch({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border border-border rounded-lg bg-surface">
+    <div className="border border-border rounded-lg bg-canvas/40">
       <button
         onClick={() => setOpen((o) => !o)}
         className="w-full text-left px-4 py-2.5 text-sm text-ink-muted hover:text-ink flex items-center justify-between"
       >
-        <span className="truncate">{query}</span>
-        <svg
-          className={`w-4 h-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <span className="truncate flex items-center gap-2">
+          <History className="w-3.5 h-3.5 text-ink-faint shrink-0" />
+          {query}
+        </span>
+        <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 border-t border-border pt-3 space-y-4 animate-fadeIn">
+        <div className="px-4 pb-4 border-t border-border pt-3 space-y-4 animate-fadeIn bg-surface rounded-b-lg">
           {cached ? (
             <>
               <DocumentResults docs={cached.docs} coverage={cached.coverage} />
               {cachedAnswer && (
-                <div className="border-t border-border pt-3">
-                  <h3 className="text-sm font-semibold text-ink mb-2">Answer</h3>
-                  <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
+                <div className="rounded-lg border border-accent/20 bg-accent-soft/40 overflow-hidden">
+                  <div className="flex items-center gap-1.5 px-3.5 py-2 border-b border-accent/10">
+                    <Sparkles className="w-3.5 h-3.5 text-accent" />
+                    <h3 className="text-xs font-semibold text-accent-hover">AI Summary</h3>
+                  </div>
+                  <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap px-3.5 py-3">
                     {cachedAnswer.answer}
                   </p>
                 </div>
