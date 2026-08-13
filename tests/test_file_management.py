@@ -332,3 +332,105 @@ def test_recent_uploads_can_delete_flag_reflects_ownership(db, library_env, monk
     rows = {r["doc_id"]: r for r in client.get("/api/files/mine").json()}
     assert rows["hashOwn"]["can_delete"] is True
     assert rows["hashOther"]["can_delete"] is False
+
+
+def test_recent_uploads_date_filter_combines_with_acl_scoping(db, library_env, monkeypatch):
+    """
+    The /api/files/mine date filter is applied in auth.db.list_files()
+    BEFORE the ACL intersection in the router — this proves the two
+    compose correctly rather than one silently overriding the other: a
+    file outside the date range must stay excluded even though it's the
+    user's own upload and would otherwise be visible.
+    """
+    own_recent = _make_file(db, library_env, "hashRecent", "recent.pdf",
+                             uploaded_by="sambodh", is_public=True)
+    own_old = _make_file(db, library_env, "hashOld", "old.pdf",
+                          uploaded_by="sambodh", is_public=True)
+    _install_fake_collection(monkeypatch, {"hashRecent": own_recent, "hashOld": own_old})
+
+    conn = db.get_conn()
+    conn.execute("UPDATE files SET created_at = '2026-06-01T00:00:00+00:00' WHERE doc_id = 'hashRecent'")
+    conn.execute("UPDATE files SET created_at = '2025-01-01T00:00:00+00:00' WHERE doc_id = 'hashOld'")
+    conn.commit()
+    conn.close()
+
+    app = _files_app()
+    app.dependency_overrides[deps.require_uploader] = lambda: _uploader_user("sambodh")
+    client = TestClient(app)
+
+    r = client.get("/api/files/mine", params={"date_from": "2026-01-01"})
+    doc_ids = {row["doc_id"] for row in r.json()}
+    assert doc_ids == {"hashRecent"}  # old upload correctly excluded by date, not just by ACL
+
+
+def test_recent_uploads_sort_oldest_first(db, library_env, monkeypatch):
+    path_a = _make_file(db, library_env, "hashA", "a.pdf", uploaded_by="sambodh", is_public=True)
+    path_b = _make_file(db, library_env, "hashB", "b.pdf", uploaded_by="sambodh", is_public=True)
+    _install_fake_collection(monkeypatch, {"hashA": path_a, "hashB": path_b})
+
+    conn = db.get_conn()
+    conn.execute("UPDATE files SET created_at = '2026-01-01T00:00:00+00:00' WHERE doc_id = 'hashA'")
+    conn.execute("UPDATE files SET created_at = '2026-02-01T00:00:00+00:00' WHERE doc_id = 'hashB'")
+    conn.commit()
+    conn.close()
+
+    app = _files_app()
+    app.dependency_overrides[deps.require_uploader] = lambda: _uploader_user("sambodh")
+    client = TestClient(app)
+
+    r = client.get("/api/files/mine", params={"sort": "oldest"})
+    doc_ids = [row["doc_id"] for row in r.json()]
+    assert doc_ids[0] == "hashA"  # earlier created_at comes first
+
+
+def test_sequential_deletes_of_multiple_own_files_all_succeed(db, library_env, monkeypatch):
+    """
+    The 'My Uploads' bulk-delete button doesn't call a separate bulk
+    endpoint — it calls DELETE /api/files once per selected id, same as a
+    single-file delete. This proves that pattern works cleanly across
+    several of the caller's own files with no cross-contamination between
+    calls (e.g. the first deletion doesn't invalidate the collection lookup
+    needed for the second).
+    """
+    paths = {
+        doc_id: _make_file(db, library_env, doc_id, f"{doc_id}.pdf", uploaded_by="sambodh", is_public=True)
+        for doc_id in ["hashA", "hashB", "hashC"]
+    }
+    _install_fake_collection(monkeypatch, paths)
+
+    app = _files_app()
+    app.dependency_overrides[deps.require_uploader] = lambda: _uploader_user("sambodh")
+    client = TestClient(app)
+
+    for doc_id in ["hashA", "hashB", "hashC"]:
+        r = client.delete("/api/files", params={"doc_id": doc_id})
+        assert r.status_code == 200
+
+    assert db.list_files() == []
+    for path in paths.values():
+        assert not os.path.exists(path)
+
+
+def test_sequential_bulk_delete_stops_at_other_users_file_without_deleting_own(db, library_env, monkeypatch):
+    """
+    If a bulk-delete selection somehow included a file the caller doesn't
+    own (shouldn't happen — the frontend never renders a checkbox for it —
+    but this proves the backend is the real boundary, not the UI), that
+    one call is rejected on its own without affecting any other file in
+    the same batch.
+    """
+    own_path = _make_file(db, library_env, "hashOwn", "own.pdf", uploaded_by="sambodh", is_public=True)
+    other_path = _make_file(db, library_env, "hashOther", "other.pdf", uploaded_by="girver", is_public=True)
+    _install_fake_collection(monkeypatch, {"hashOwn": own_path, "hashOther": other_path})
+
+    app = _files_app()
+    app.dependency_overrides[deps.require_uploader] = lambda: _uploader_user("sambodh")
+    client = TestClient(app)
+
+    r_own = client.delete("/api/files", params={"doc_id": "hashOwn"})
+    r_other = client.delete("/api/files", params={"doc_id": "hashOther"})
+
+    assert r_own.status_code == 200
+    assert r_other.status_code == 403
+    remaining = {f["doc_id"] for f in db.list_files()}
+    assert remaining == {"hashOther"}  # own file gone, other user's file untouched

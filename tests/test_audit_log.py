@@ -169,6 +169,34 @@ def test_audit_log_filter_by_action(db, client):
     assert any(e["target_id"] == "onlyuser" for e in entries)
 
 
+def test_audit_log_date_range_filter(db, client):
+    """Same date(created_at) >= date(?) pattern as auth.db.list_files(),
+    exercised directly against audit_log rows with explicit timestamps so
+    the test isn't relying on wall-clock timing."""
+    conn = db.get_conn()
+    conn.execute(
+        "INSERT INTO audit_log (created_at, actor_username, action, target_type, target_id, description) "
+        "VALUES ('2025-01-01T00:00:00+00:00', 'admin', 'USER_CREATED', 'user', 'old_user', 'old entry')"
+    )
+    conn.execute(
+        "INSERT INTO audit_log (created_at, actor_username, action, target_type, target_id, description) "
+        "VALUES ('2026-06-01T00:00:00+00:00', 'admin', 'USER_CREATED', 'user', 'new_user', 'new entry')"
+    )
+    conn.commit()
+    conn.close()
+
+    recent = client.get("/api/admin/audit-log", params={"date_from": "2026-01-01"}).json()
+    assert {e["target_id"] for e in recent} == {"new_user"}
+
+    early = client.get("/api/admin/audit-log", params={"date_to": "2025-12-31"}).json()
+    assert {e["target_id"] for e in early} == {"old_user"}
+
+    both = client.get(
+        "/api/admin/audit-log", params={"date_from": "2025-01-01", "date_to": "2025-12-31"}
+    ).json()
+    assert {e["target_id"] for e in both} == {"old_user"}
+
+
 def test_audit_log_actions_endpoint_lists_distinct_actions(db, client):
     client.post("/api/admin/departments", json={"name": "Legal"})
     r = client.get("/api/admin/audit-log/actions")

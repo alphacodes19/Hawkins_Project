@@ -84,7 +84,7 @@ export function ChatAnswer({ question, docs, onComplete, cached }: Props) {
   }, [question]);
 
   return (
-    <div className="rounded-lg border border-accent/25 bg-gradient-to-br from-accent-soft/70 to-surface shadow-card overflow-hidden max-w-3xl">
+    <div className="rounded-lg border border-accent/25 bg-gradient-to-br from-accent-soft/70 to-surface shadow-card overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-accent/15 bg-accent-soft/40">
         <span className="flex items-center justify-center w-6 h-6 rounded-full bg-accent text-white shrink-0">
           <Sparkles className="w-3.5 h-3.5" />
