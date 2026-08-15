@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Sidebar } from "@/components/Sidebar";
 import { LogoWatermark } from "@/components/LogoWatermark";
+import { WelcomeToast } from "@/components/WelcomeToast";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -26,6 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex">
+      <WelcomeToast />
       <Sidebar />
       <main className="flex-1 min-w-0 relative">
         {/* Fixed to the viewport (not the scrolling content), centered

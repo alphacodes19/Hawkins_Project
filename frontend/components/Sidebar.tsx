@@ -115,6 +115,8 @@ export function Sidebar() {
       </nav>
 
       <div className={`mt-auto py-4 border-t border-border space-y-1 ${collapsed ? "px-2" : "px-3"}`}>
+        <UserIdentity user={user} collapsed={collapsed} />
+
         <Link
           href="/profile"
           title="My Profile"
@@ -147,6 +149,65 @@ export function Sidebar() {
 
       {showUpload && <UploadDialog onClose={() => setShowUpload(false)} />}
     </aside>
+  );
+}
+
+function UserIdentity({
+  user,
+  collapsed,
+}: {
+  user: { id: number; username: string; role: string; dept_name: string | null; has_avatar: boolean };
+  collapsed: boolean;
+}) {
+  const initial = user.username.slice(0, 1).toUpperCase();
+  const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+  const tooltip = `${user.username} \u00B7 ${roleLabel}${user.dept_name ? ` \u00B7 ${user.dept_name}` : ""}`;
+
+  const avatar = user.has_avatar ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={authApi.avatarUrl(user.id)}
+      alt=""
+      className="w-8 h-8 rounded-full object-cover shrink-0"
+    />
+  ) : (
+    <div className="w-8 h-8 rounded-full bg-ink text-white text-xs font-semibold flex items-center justify-center shrink-0">
+      {initial}
+    </div>
+  );
+
+  if (collapsed) {
+    return (
+      <div title={tooltip} className="flex justify-center py-1.5 mb-1">
+        {avatar}
+      </div>
+    );
+  }
+
+  return (
+    <div title={tooltip} className="flex items-center gap-2.5 px-3 py-2 mb-1 rounded-md bg-canvas/70">
+      {avatar}
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-ink truncate">{user.username}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <RoleBadge role={user.role} />
+          {user.dept_name && <span className="text-xs text-ink-faint truncate">{user.dept_name}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const label = role.charAt(0).toUpperCase() + role.slice(1);
+  const isAdmin = role === "admin";
+  return (
+    <span
+      className={`text-[10px] uppercase tracking-wide font-medium rounded-full px-1.5 py-0.5 border shrink-0
+                  ${isAdmin ? "text-accent-hover bg-accent-soft border-accent/20" : "text-ink-faint bg-surface border-border"}`}
+    >
+      {label}
+    </span>
   );
 }
 

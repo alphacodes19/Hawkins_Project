@@ -512,6 +512,7 @@ def retrieve_documents(query: str, filters: dict = None,
             "date":         meta.get("date", ""),
             "summary":      meta.get("summary", ""),
             "page":         meta.get("page", ""),
+            "ocr":          meta.get("ocr", "false"),
         })
 
     # ── Rerank ───────────────────────────────────────────────────────────────
