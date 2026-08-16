@@ -24,7 +24,6 @@ chroma_db/
 *.sqlite
 
 # Local auth database
-auth.db
 
 # Environment files
 .env
