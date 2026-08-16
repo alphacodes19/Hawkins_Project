@@ -5,10 +5,20 @@ import tempfile
 import chromadb
 
 # ── CRITICAL: Set working directory to project root so config.py resolves correctly
+# NOTE: this file was moved into legacy/ during a repo cleanup (it's the
+# pre-migration Streamlit prototype, superseded by frontend/ + api/ — see
+# legacy/README.md). Before the move, this file's own directory WAS the
+# project root, so APP_DIR alone was correct for both the chdir/sys.path
+# setup below AND for locating static/. Those are no longer the same
+# directory, so they're now split: APP_DIR is still "this file's own
+# directory" (used only for the logo path, since a copy of the logo lives
+# alongside it in legacy/static/), and PROJECT_ROOT is where config.py,
+# auth/, retrieval/, eval/ etc. actually live.
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-os.chdir(APP_DIR)
-if APP_DIR not in sys.path:
-    sys.path.insert(0, APP_DIR)
+PROJECT_ROOT = os.path.dirname(APP_DIR)
+os.chdir(PROJECT_ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 # ── Logo (base64 PNG, loaded once from static/ to keep source readable) ──────
 _LOGO_B64 = open(os.path.join(APP_DIR, "static", "hawkins_logo_b64.txt")).read()
 

@@ -1,6 +1,15 @@
 # Hawkins Data Archive — Handover Notes
 
-This document is for anyone picking up this project after the initial internship build: a manager reviewing the codebase, a successor developer, or the intern themselves returning after a gap.
+For anyone picking up this project after the internship build: a manager
+reviewing the codebase, a successor developer, or the intern themselves
+returning after a gap.
+
+> **Revision note:** the previous version of this document described the
+> original Streamlit-based prototype and was internally inconsistent (one
+> section said "no CI", a later section said CI had been added). This
+> revision reflects the actual current state of the Next.js/FastAPI system
+> as of the most recent development session, and removes that
+> contradiction.
 
 ---
 
@@ -8,73 +17,108 @@ This document is for anyone picking up this project after the initial internship
 
 | Component | Status | Notes |
 |---|---|---|
-| PDF / DOCX / Excel / Email / SQL ingestion | ✅ Working | All five connector types tested |
-| OCR fallback for scanned PDFs | ✅ Working | pypdfium2 → Tesseract per-page |
-| BGE-M3 embedding + ChromaDB indexing | ✅ Working | Batch mode (64 chunks/call) |
-| BM25 + dense + metadata hybrid retrieval | ✅ Working | RRF fusion, see retriever.py |
-| Cross-encoder reranking (ms-marco-MiniLM) | ✅ Working | Chunk size tuned to reranker limit |
-| qwen2.5:7b answer generation via Ollama | ✅ Working | Streaming, 16 384 token context |
-| Role-based ACL (admin / uploader / viewer) | ✅ Working | Default-deny, department-scoped |
-| Admin panel (users, departments, file flags) | ✅ Working | pages/1_Admin.py |
-| Query + session history logging | ✅ Working | Per-user JSON in data/history/ |
-| ZIP archive ingestion | ✅ Working | pipeline/zip_handler.py |
+| Next.js frontend + FastAPI backend | ✅ Working | Superseded the original Streamlit app, kept in `legacy/` |
+| PDF / DOCX / Excel / Email / SQL ingestion | ✅ Working | |
+| OCR fallback for scanned PDFs | ✅ Working | pypdfium2 → Tesseract per-page; requires the Tesseract engine installed separately from the Python packages (a real gotcha on Windows — see "Environment variables" below) |
+| BGE-M3 embedding + ChromaDB indexing | ✅ Working | |
+| BM25 + dense + metadata hybrid retrieval | ✅ Working | RRF fusion, see `retrieval/retriever.py` |
+| Cross-encoder reranking | ✅ Working | |
+| LLM answer generation via Ollama | ✅ Working | Streaming (SSE); current model `qwen2.5:14b` — see the config drift flag in `docs/README.md` |
+| Post-generation faithfulness/hallucination check | ✅ Working | `eval/faithfulness_check.py`, wired into the live answer stream |
+| Role-based ACL (admin / uploader / viewer) | ✅ Working | Default-deny, department-scoped, enforced server-side |
+| Admin panel: users, departments, files, **audit log** | ✅ Working | Audit log is new since the original handover — append-only, no edit/delete route exists anywhere in the API |
+| Profile photos | ✅ Working | Pillow-validated (decoded, not trusted by filename/type), re-encoded, server-generated filenames |
+| Search history (SQLite-backed, per-entry deletable) | ✅ Working | Migrated from per-user JSON files; migration is idempotent and one-time |
+| Uploader self-service file management ("My Uploads") | ✅ Working | ACL-scoped; ownership re-checked server-side on every delete |
+| Duplicate detection (content-hash based) | ✅ Working, verified | See flag below re: exact-match-only limitation |
+| Automated test suite | ✅ 224 tests passing | `pytest -m "not integration"` |
+| CI | ✅ Working | `.github/workflows/ci.yml`, runs on push/PR to main/develop |
 
 ---
 
 ## What Is Known to Be Incomplete or Weak
 
-### High priority (do these before calling it production-ready)
+### Needs your input specifically
 
-**1. No test suite.**
-There are zero pytest tests. The `test_ocr.py` file is a manual smoke test, and most modules have `if __name__ == "__main__"` blocks used as ad-hoc runners. Add tests for at minimum:
-- `pipeline/doc_id.py` — content hash stability and collision handling
-- `auth/security.py` — password hashing and timing-safe comparison
-- `auth/db.py` — ACL visibility logic (the `allowed_doc_ids()` decision tree)
-- `retrieval/retriever.py` — the `_rrf()` function and exact-keyword injection
+**1. `config.py` comment/value drift.** The inline comments describing
+`OLLAMA_MODEL`, `OLLAMA_NUM_CTX`, and `ANSWER_TOP_DOCS` no longer match the
+actual values set for those constants. See `docs/README.md`'s
+configuration table for the exact mismatch. Nobody currently knows (from
+the code alone) whether the comments or the values reflect the actual
+intent — needs a two-line fix once that's confirmed.
 
-A day's work would cover 15–20 tests. This is the single biggest gap between "intern project" and "engineer's project."
+**2. Duplicate detection is exact-match only, by design — confirm this is
+still the accepted tradeoff.** A shortened or edited version of an existing
+document (different bytes, same underlying content) will not be flagged.
+This came up directly in a real test case during the most recent
+development session and was confirmed as expected behavior, not a bug —
+documenting it here so it doesn't get rediscovered as a surprise later.
 
-**2. No retrieval evaluation.**
-The hybrid retriever is well-designed and well-reasoned, but there are zero numbers proving it outperforms naive vector-only retrieval. Build a small labeled eval set (20–30 query → expected-document pairs from real Hawkins documents) and a script reporting recall@5 for hybrid vs. vector-only. This converts "I built a hybrid retriever" into a defensible, quantified claim.
+**3. `chroma_db/` vs. wherever `config.py`'s `CHROMA_PATH` actually points.**
+If there are multiple ChromaDB directories floating around from earlier
+iterations of the project, confirm which one the running app actually
+reads before assuming any of them are safe to delete.
 
-**3. Default admin password is hardcoded.**
-The default `admin` / `hawkins-change-me` credential is in `auth/db.py:init_db()`. There is no forced-rotation-on-first-login mechanic. Document this as a required post-deployment step, or add a `password_changed` flag to the users table and enforce a change on first login.
+### Still true from the original handover (re-verified, not yet fixed)
 
-**4. Metadata tagging is disabled.**
-`SKIP_TAGGING = True` in `pipeline/indexer.py`. The metadata-search leg of the hybrid retriever runs on empty `doc_type` / `department` / `project` fields for all documents indexed in fast mode. After the demo, set `SKIP_TAGGING = False` and run a full re-index with `python -m pipeline.indexer --reset`.
+**4. Metadata tagging is disabled by default.** `SKIP_TAGGING = True` in
+`pipeline/indexer.py`. Department/project/doc_type filtering runs on empty
+metadata for documents indexed in fast mode.
 
-### Medium priority
+**5. No query caching.** Identical repeated queries re-embed and re-retrieve
+on every call.
 
-**5. `retrieval/generator.py` is dead code.**
-`app.py` generates answers inline via `stream_answer()` and does not call `generator.py`. The file is kept for CLI testing (`__main__` block) and as API documentation. The `num_ctx: 8192` bug has been fixed to use `config.OLLAMA_NUM_CTX`. Do not wire this back into `app.py` without switching it to `retrieve_documents()` (the hybrid path) first.
+**6. No Docker/containerization.** Manual setup instructions exist and are
+current (see root `README.md`), but there's still no `Dockerfile` /
+`docker-compose.yml`.
 
-**6. No GitHub Actions / CI.**
-Adding a basic GitHub Actions workflow that runs the future pytest suite on push would take ~30 minutes and signal deployment maturity clearly to any reviewer.
+### Resolved since the original handover
 
-**7. No Docker / containerisation.**
-Manual setup instructions are extensive and well-documented in `requirements.txt`, but a `Dockerfile` would make deployment reproducible. The Ollama server needs its own container or a host install — this complicates pure Docker, but a `docker-compose.yml` with the app container + an Ollama sidecar is achievable.
-
-### Low priority / future scope
-
-- **Faithfulness check**: post-generation NLI check that every cited source actually appears in the retrieved context.
-- **Query decomposition**: multi-part questions ("leave policy AND 2025 audit") are handled as a single query blob.
-- **Token usage logging**: no per-query token count or latency tracking.
-- **LRU cache on `embed_text()`**: repeated identical queries re-embed on every call; a simple `functools.lru_cache` would help demo-day performance.
+- ~~No test suite~~ → 224 tests, `tests/`
+- ~~No retrieval evaluation~~ → `eval/eval_retrieval.py` + `eval/eval_set.json`
+- ~~No CI~~ → `.github/workflows/ci.yml`
+- ~~No hallucination check~~ → `eval/faithfulness_check.py`, live in the answer stream
+- ~~Default admin password hardcoded with no rotation mechanic~~ → still
+  hardcoded as the *first-run seed* (this is normal/expected for a fresh
+  database), but a proper `change-password` endpoint now exists and is
+  exposed in the UI (Profile page) — using it is a manual step, not
+  enforced automatically on first login. Enforcing that remains open, if wanted.
 
 ---
 
 ## Deployment Environment
 
-- **Server**: Windows Server, 128GB RAM, no GPU, CPU-only inference
-- **LLM**: qwen2.5:7b via Ollama (`ollama pull qwen2.5:7b`)
-- **Inference speed**: ~15–25 seconds per answer (CPU)
-- **ChromaDB**: local SQLite-backed persistent store in `chroma_db/`
-- **Auth DB**: SQLite in `auth/hawkins_auth.db`
+- **Server**: Windows Server, 128GB RAM, no GPU, CPU-only inference (as of
+  the original deployment — re-confirm this hasn't changed)
+- **LLM**: current configured model is `qwen2.5:14b` via Ollama — see the
+  config drift flag above before assuming this is the intended final value
+- **ChromaDB**: local persistent store — confirm the actual path via
+  `config.py`'s `CHROMA_PATH`
+- **Auth DB**: SQLite, `auth.db`
 
-### Environment variables (Windows Server PowerShell)
+### Environment variables (Windows PowerShell)
+
 ```powershell
-$env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+[System.Environment]::SetEnvironmentVariable("TESSERACT_CMD", "C:\Program Files\Tesseract-OCR\tesseract.exe", "User")
 ```
+
+**Two gotchas confirmed the hard way during a real debugging session, worth
+recording here so the next person doesn't lose the same hour:**
+
+1. Setting this env var only takes effect in **terminal windows opened
+   after** the change — an already-open terminal (including one running the
+   backend) will not see it. Close and reopen fully.
+2. The backend caches its OCR-availability check once per process
+   (`_probe_ocr()` in `connectors/pdf_connector.py`). Installing Tesseract
+   or fixing this env var **after** the backend has already started will
+   not take effect until the backend process is actually restarted — a
+   `--reload` file-change restart does not re-read environment variables,
+   only a full process restart does.
+3. If Hindi-language OCR is needed (the app is configured for
+   `eng+hin`), the Hindi trained-data file
+   (`tessdata/hin.traineddata`) is a separate download from the base
+   Tesseract installer and does not come bundled by default — confirmed
+   missing on at least one real deployment.
 
 ---
 
@@ -82,61 +126,28 @@ $env:TESSERACT_CMD = "C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 | Task | Where to look |
 |---|---|
-| Change retrieval parameters | `config.py` — all tunables with comments |
-| Change answer prompt | `app.py:stream_answer()` — the `ANSWER_PROMPT` string |
-| Add a new file format | Create `connectors/myformat_connector.py`, register in `pipeline/indexer.py` |
-| Add a new role | `auth/db.py` — update `create_user()` validation and `allowed_doc_ids()` |
-| Debug a missing document | Check `auth/db.py:allowed_doc_ids()` — most "why can't I see X" questions trace here |
+| Change retrieval parameters | `config.py` |
+| Change the answer prompt | search for the prompt construction in `retrieval/` / `api/services.py` |
+| Add a new file format | `connectors/myformat_connector.py`, register in `pipeline/indexer.py` |
+| Add a new role | `auth/db.py` — `create_user()` validation and `allowed_doc_ids()` |
+| Debug a missing document | `auth/db.py:allowed_doc_ids()` — most "why can't I see X" questions trace here |
+| Debug OCR not firing | `connectors/pdf_connector.py:_probe_ocr()` — and remember the process-restart gotcha above |
 | Re-index everything | `python -m pipeline.indexer --reset` |
-| Add a synonym | `retrieval/retriever.py:SYNONYMS` dict |
+| Trace an admin action | Admin panel → Audit Log tab, or `auth/db.py:list_audit_log()` |
 
 ---
 
-## Suggested Next Steps (ordered by ROI)
+## Suggested Next Steps (ordered by likely value)
 
-1. Write 15–20 pytest tests (1 day)
-2. Build 20-query labeled eval set + recall@5 script (2–3 days)
-3. Enable metadata tagging (`SKIP_TAGGING = False`) and re-index
-4. Add GitHub Actions CI running the test suite
-5. Add a `Dockerfile` + `docker-compose.yml`
-6. Add a lightweight faithfulness check on generated answers
-7. If frontend upgrade is desired: expose `retrieval/` and `auth/` via FastAPI (they are already Streamlit-decoupled) and build a minimal Next.js frontend on top
-
----
-
-## What Was Added in Phase 2
-
-### tests/ — pytest suite (122 tests, all passing)
-
-| File | Tests | Covers |
-|---|---|---|
-| `tests/conftest.py` | — | Shared fixtures, heavy-dep mocking, `tmp_db` fixture |
-| `tests/test_security.py` | 27 | PBKDF2 hashing, verify, malformed input, salt uniqueness |
-| `tests/test_doc_id.py` | 22 | Content hash correctness, file vs bytes, legacy fallback |
-| `tests/test_acl.py` | 39 | Full ACL decision tree, user/dept/file CRUD, last-admin guard |
-| `tests/test_retriever_logic.py` | 34 | Normalise, RRF, synonym expansion, `_is_allowed`, `_acl_where` |
-
-Run with: `pytest tests/`
-
-### eval/ — retrieval evaluation and faithfulness checker
-
-- `eval/eval_set.json` — 28 labeled query→document pairs (fill in `expected_sources`)
-- `eval/eval_retrieval.py` — recall@k script comparing hybrid vs vector-only
-- `eval/faithfulness_check.py` — post-generation hallucination check (citation audit + n-gram overlap + optional LLM self-check)
-
-### .github/workflows/ci.yml
-
-Runs `pytest tests/ -m "not integration"` on push/PR to main/develop, Python 3.11 + 3.12.
-
-### pyproject.toml
-
-pytest and ruff configuration.
-
----
-
-## Updated Next Steps (what remains)
-
-1. **Fill in eval_set.json** — add real filenames from your indexed corpus to `expected_sources` for each of the 28 queries. Run `python eval/eval_retrieval.py --admin` and record the numbers.
-2. **Enable metadata tagging** — set `SKIP_TAGGING = False` in `pipeline/indexer.py` and re-index for better metadata search results.
-3. **Hook faithfulness check into app.py** — import `check_faithfulness` and show a `st.warning()` when `is_faithful` is False.
-4. **Dockerfile + docker-compose** — low priority but useful for reproducible deployment.
+1. Resolve the `config.py` comment/value drift (5 minutes, but needs a real decision).
+2. Confirm which `chroma_db/` directory (if more than one exists) is actually live.
+3. Decide whether "revised version of an existing document" duplicate
+   detection is wanted as a real feature — it would need a different
+   technique (text/embedding similarity) than the current exact-hash
+   approach, and hasn't been designed yet.
+4. Re-benchmark answer latency against the current `qwen2.5:14b` model —
+   the ~15–25s figure on record is for the older `qwen2.5:7b`.
+5. Enable metadata tagging (`SKIP_TAGGING = False`) and re-index, if the
+   metadata-search leg of retrieval is underperforming.
+6. Add a `Dockerfile` + `docker-compose.yml` for reproducible deployment.
+7. Enforce password rotation on first login for newly created accounts.

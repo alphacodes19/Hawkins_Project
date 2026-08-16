@@ -75,4 +75,6 @@ VECTOR_CANDIDATES = 200   # was 100
 BM25_CANDIDATES   = 300   # was 150
 
 # World bible path (currently unused — placeholder for future use)
-WORLD_BIBLE_PATH = os.path.join(BASE_DIR, "world_bible.json")
+# Lives in generation/ alongside the synthetic-data generator that reads
+# it, not the project root — moved there during a repo cleanup.
+WORLD_BIBLE_PATH = os.path.join(BASE_DIR, "generation", "world_bible.json")

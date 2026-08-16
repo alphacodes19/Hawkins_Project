@@ -1,0 +1,412 @@
+{
+  "company": {
+    "name": "Hawkins Cookers Limited",
+    "founded": 1959,
+    "founder": "H.D. Vasudeva",
+    "current_cmd": "To be updated per latest annual report",
+    "tagline": "The Future of Cooking",
+    "mission": "To win over customers, to truly please them by delivering products and service beyond their expectations, to earn their friendship and build relationships that will endure.",
+    "total_units_sold_worldwide": "140 million+",
+    "export_since": 1974,
+    "export_countries": "All six continents",
+    "certifications": ["Underwriters Laboratories USA", "BIS / ISI (mandatory from Feb 1 2021)", "CE Certification"],
+    "guarantee": "5 years on all pressure cookers",
+    "employees": "~700",
+    "registered_trademarks": ["Hawkins (18 countries)", "Futura (22 countries)", "Hawkins Ventura / Ventile (pending registration)"],
+    "registered_office": "Maker Tower F-101, Cuffe Parade, Mumbai 400 005",
+    "cin": "L28997MH1959PLC011304",
+    "customer_service_office": "Udyog Mandir 2, Pitamber Lane, Mahim, Mumbai 400 016, India",
+    "customer_service_contact": {"phone": "+91-22-2444 0807", "fax": "+91-22-2444 9152", "email": "kitchen@hawkins.in", "website": "www.hawkinscookers.com"},
+    "offices": ["Mumbai HQ (Cuffe Parade)", "Mumbai Customer Service (Mahim)"],
+    "total_product_models": "290+ pots and pans across all materials and finishes",
+    "raw_material_standards": {
+      "wrought_aluminium_body_ceramic_coated": "Aluminium 40800 grade (EN Aluminium 8011 grade)",
+      "wrought_aluminium_body_other": "Aluminium 31000 grade (EN Aluminium 3003 grade)",
+      "die_cast_aluminium_body": "Die-Cast Aluminium LM 6 grade (EN Aluminium 44100 grade), food-compatible",
+      "stainless_steel_sandwich_bottom_body": "Stainless Steel AISI 304 grade (18/8 Stainless Steel)",
+      "stainless_steel_tri_ply_inner": "Stainless Steel AISI 304 grade (18/8 Stainless Steel)",
+      "stainless_steel_core": "Heat-diffusing Aluminium as per IS:21 standard (19500 grade)",
+      "stainless_steel_induction_base": "Stainless Steel AISI 430 grade (magnetic, induction compatible)",
+      "metal_lids_ss": "AISI 304 grade (18/8 Stainless Steel)"
+    },
+    "pressure_cooker_safety_standard": {
+      "operating_pressure": "103 kPa (15 lbs per square inch)",
+      "max_fill_general": "Do not fill over two-thirds full",
+      "max_fill_expanding_foods": "Do not fill over half full for rice or dried vegetables that expand",
+      "max_fill_pulses": "Do not fill over one-third full for dal/pulses which sprout",
+      "safety_valve_type": "Fusible type, operates automatically on excess pressure",
+      "prohibited_foods": ["Applesauce", "Cranberries", "Pearl barley", "Oatmeal/cereals", "Split peas", "Noodles", "Macaroni", "Rhubarb", "Spaghetti"],
+      "prohibited_use": ["Pressure frying with oil", "Dishwasher cleaning", "Use in heated oven", "Deep frying for more than 20 minutes at a time"],
+      "repairs_policy": "Only gasket, plastic handles, safety valve, and pressure regulator may be replaced, and only with genuine Hawkins parts by an authorised service centre"
+    },
+    "factories": [
+      {"id": "F001", "location": "Thane, Maharashtra",     "type": "Pressure Cooker Manufacturing",  "established": 1959, "capacity_units_per_day": 8000},
+      {"id": "F002", "location": "Hoshiarpur, Punjab",     "type": "Cookware & PC Manufacturing",    "established": 1998, "capacity_units_per_day": 6000},
+      {"id": "F003", "location": "Jaunpur, Uttar Pradesh", "type": "Hard Anodised & Futura Range",   "established": 2005, "capacity_units_per_day": 5000},
+      {"id": "F004", "location": "Thane (Unit 2)",         "type": "Die-Cast & Stainless Steel",     "established": 2012, "capacity_units_per_day": 4500}
+    ],
+    "warehouses": [
+      {"id": "W001", "location": "Thane, Maharashtra",   "area_sqft": 45000},
+      {"id": "W002", "location": "Hoshiarpur, Punjab",   "area_sqft": 32000},
+      {"id": "W003", "location": "Jaunpur, UP",          "area_sqft": 28000},
+      {"id": "W004", "location": "Delhi NCR",            "area_sqft": 22000},
+      {"id": "W005", "location": "Bengaluru, Karnataka", "area_sqft": 18000}
+    ],
+    "key_milestones": [
+      {"year": 1959, "event": "Company founded by H.D. Vasudeva with capital of Rs 20,000 in technical collaboration with L.G. Hawkins of England"},
+      {"year": 1968, "event": "Brahm Vasudeva joins as Vice-Chairman and Managing Director"},
+      {"year": 1974, "event": "Exports begin — products reach all six continents"},
+      {"year": 1976, "event": "First National Award for Consumer Protection and Service from ASSOCHAM"},
+      {"year": 1981, "event": "India Star Award for Packaging; Government of India Certificate for excellence in Packaging"},
+      {"year": 1982, "event": "Pegasus Award for excellence in Advertising; Gold Medal for Consumer Welfare"},
+      {"year": 1984, "event": "H.D. Vasudeva steps down; Brahm Vasudeva becomes Chairman and MD/CEO"},
+      {"year": 1990, "event": "India Star Awards for Futura Packaging and Hawkins Frying Pan Packaging"},
+      {"year": 1993, "event": "H.D. Vasudeva passes away; Consumer Care Award from Consumer Complaints, New Delhi"},
+      {"year": 1998, "event": "Hoshiarpur plant established"},
+      {"year": 2005, "event": "Jaunpur plant established"},
+      {"year": 2006, "event": "Brahm Vasudeva retires as Chairman and CEO on April 25; becomes Non-Executive Chairman"},
+      {"year": 2021, "event": "Government of India mandates BIS/ISI certification for all pressure cookers from February 1"},
+      {"year": 2025, "event": "Catalog 2025 launched — widest cookware range in company history"},
+      {"year": 2026, "event": "PriceList updated June 1, 2026"}
+    ],
+    "financial_history": [
+      {"year": 1984, "sales_cr": 19.0,  "net_profit_cr": 0.52},
+      {"year": 2020, "sales_cr": 674.0, "net_profit_cr": 72.49}
+    ]
+  },
+
+  "departments": [
+    {"id": "D001", "name": "Research & Development",    "head": "Neeraj Sharma",   "location": "Thane HQ",      "headcount": 45, "focus": "New product design, material research, prototype testing"},
+    {"id": "D002", "name": "Quality Control",           "head": "Priya Mehta",     "location": "All Plants",    "headcount": 60, "focus": "Inspection standards, defect analysis, BIS/UL compliance"},
+    {"id": "D003", "name": "Procurement",               "head": "Rohit Desai",     "location": "Mumbai HQ",     "headcount": 30, "focus": "Raw material sourcing, vendor management, cost optimisation"},
+    {"id": "D004", "name": "Human Resources",           "head": "Anita Joshi",     "location": "Mumbai HQ",     "headcount": 25, "focus": "Recruitment, payroll, intern programme, policy management"},
+    {"id": "D005", "name": "Finance",                   "head": "Vikram Patel",    "location": "Mumbai HQ",     "headcount": 35, "focus": "Budgeting, accounts, investor relations, cost control"},
+    {"id": "D006", "name": "Operations",                "head": "Suresh Kumar",    "location": "Thane Plant",   "headcount": 280,"focus": "Production planning, plant management, supply chain"},
+    {"id": "D007", "name": "Sales & Marketing",         "head": "Deepa Nair",      "location": "Mumbai HQ",     "headcount": 75, "focus": "Distribution, retail, export, advertising, promotions"},
+    {"id": "D008", "name": "Information Technology",    "head": "Arjun Menon",     "location": "Mumbai HQ",     "headcount": 20, "focus": "ERP, infrastructure, digital transformation, AI initiatives"},
+    {"id": "D009", "name": "Customer Service",          "head": "Kavita Shah",     "location": "Mumbai HQ",     "headcount": 40, "focus": "Warranty claims, repair centres, consumer complaints"},
+    {"id": "D010", "name": "Export & International",    "head": "Ramesh Iyer",     "location": "Mumbai HQ",     "headcount": 18, "focus": "International distribution, CE/UL compliance, global accounts"}
+  ],
+
+  "people": [
+    {"id": "E001", "name": "Neeraj Sharma",   "role": "R&D Lead",              "dept": "D001", "email": "neeraj.sharma@hawkins.com",   "phone": "+91-9820001001", "location": "Thane HQ",  "joined": "2015-03-01"},
+    {"id": "E002", "name": "Priya Mehta",     "role": "QC Manager",            "dept": "D002", "email": "priya.mehta@hawkins.com",     "phone": "+91-9820001002", "location": "Thane Plant","joined": "2013-07-15"},
+    {"id": "E003", "name": "Rohit Desai",     "role": "Procurement Head",      "dept": "D003", "email": "rohit.desai@hawkins.com",     "phone": "+91-9820001003", "location": "Mumbai HQ", "joined": "2011-01-10"},
+    {"id": "E004", "name": "Anita Joshi",     "role": "HR Manager",            "dept": "D004", "email": "anita.joshi@hawkins.com",     "phone": "+91-9820001004", "location": "Mumbai HQ", "joined": "2016-06-01"},
+    {"id": "E005", "name": "Vikram Patel",    "role": "Finance Director",      "dept": "D005", "email": "vikram.patel@hawkins.com",    "phone": "+91-9820001005", "location": "Mumbai HQ", "joined": "2009-04-20"},
+    {"id": "E006", "name": "Suresh Kumar",    "role": "Plant Manager",         "dept": "D006", "email": "suresh.kumar@hawkins.com",    "phone": "+91-9820001006", "location": "Thane Plant","joined": "2010-09-05"},
+    {"id": "E007", "name": "Deepa Nair",      "role": "Sr. Manager Sales",     "dept": "D007", "email": "deepa.nair@hawkins.com",      "phone": "+91-9820001007", "location": "Mumbai HQ", "joined": "2014-02-18"},
+    {"id": "E008", "name": "Arjun Menon",     "role": "IT Head",               "dept": "D008", "email": "arjun.menon@hawkins.com",     "phone": "+91-9820001008", "location": "Mumbai HQ", "joined": "2018-11-01"},
+    {"id": "E009", "name": "Kavita Shah",     "role": "Customer Service Head", "dept": "D009", "email": "kavita.shah@hawkins.com",     "phone": "+91-9820001009", "location": "Mumbai HQ", "joined": "2017-03-22"},
+    {"id": "E010", "name": "Ramesh Iyer",     "role": "Export Manager",        "dept": "D010", "email": "ramesh.iyer@hawkins.com",     "phone": "+91-9820001010", "location": "Mumbai HQ", "joined": "2012-08-14"},
+    {"id": "E011", "name": "Sanjay Kulkarni", "role": "Factory Manager",       "dept": "D006", "email": "sanjay.kulkarni@hawkins.com", "phone": "+91-9820001011", "location": "Hoshiarpur","joined": "2001-05-30"},
+    {"id": "E012", "name": "Meena Pillai",    "role": "QC Inspector",          "dept": "D002", "email": "meena.pillai@hawkins.com",    "phone": "+91-9820001012", "location": "Jaunpur",   "joined": "2019-08-01"},
+    {"id": "E013", "name": "Anil Bhatt",      "role": "R&D Engineer",          "dept": "D001", "email": "anil.bhatt@hawkins.com",      "phone": "+91-9820001013", "location": "Thane HQ",  "joined": "2020-01-15"},
+    {"id": "E014", "name": "Pooja Verma",     "role": "HR Executive",          "dept": "D004", "email": "pooja.verma@hawkins.com",     "phone": "+91-9820001014", "location": "Mumbai HQ", "joined": "2021-06-07"},
+    {"id": "E015", "name": "Girish Nande",    "role": "Finance Manager",       "dept": "D005", "email": "girish.nande@hawkins.com",    "phone": "+91-9820001015", "location": "Mumbai HQ", "joined": "2017-09-10"}
+  ],
+
+  "interns": [
+    {"id": "I001", "name": "Sambodh Gupta",   "college": "IIIT Manipur",         "dept": "D008", "mentor": "Arjun Menon",   "start": "2026-06-01", "end": "2026-07-31", "project": "Local Enterprise Knowledge Assistant"},
+    {"id": "I002", "name": "Ritika Sharma",   "college": "NIT Trichy",           "dept": "D001", "mentor": "Neeraj Sharma", "start": "2026-06-01", "end": "2026-07-31", "project": "Smart Valve Pressure Testing Automation"},
+    {"id": "I003", "name": "Karan Mehta",     "college": "BITS Pilani",          "dept": "D005", "mentor": "Vikram Patel",  "start": "2026-06-01", "end": "2026-07-31", "project": "Cost Variance Analysis Dashboard"},
+    {"id": "I004", "name": "Sneha Iyer",      "college": "IIT Bombay",           "dept": "D002", "mentor": "Priya Mehta",   "start": "2026-06-01", "end": "2026-07-31", "project": "QC Defect Prediction Model"},
+    {"id": "I005", "name": "Aryan Singh",     "college": "VIT Vellore",          "dept": "D007", "mentor": "Deepa Nair",    "start": "2026-06-01", "end": "2026-07-31", "project": "Consumer Sentiment Analysis — E-commerce Reviews"}
+  ],
+
+  "projects": [
+    {
+      "id": "P001", "name": "Project Aurora", "dept": "D001", "start": "2024-01-15", "end": "2025-12-31",
+      "status": "Active", "lead": "Neeraj Sharma", "budget": 4500000, "spent": 2870000,
+      "description": "Next-generation pressure cooker with AI-assisted smart pressure release valve. Targeting launch in Q1 2026.",
+      "phases": [
+        {"phase": 1, "name": "Concept & Feasibility",  "status": "Completed", "end": "2024-04-30"},
+        {"phase": 2, "name": "Prototype Development",  "status": "Completed", "end": "2024-09-30"},
+        {"phase": 3, "name": "Pressure Testing & BIS", "status": "Active",    "end": "2025-06-30"},
+        {"phase": 4, "name": "Pilot Production",       "status": "Pending",   "end": "2025-12-31"}
+      ]
+    },
+    {
+      "id": "P002", "name": "Project Falcon", "dept": "D002", "start": "2024-06-01", "end": "2024-12-31",
+      "status": "Completed", "lead": "Priya Mehta", "budget": 1200000, "spent": 1145000,
+      "description": "Full QC audit and process overhaul for the entire AlphaCook and Futura product line across all three plants.",
+      "phases": [
+        {"phase": 1, "name": "Audit Planning",          "status": "Completed", "end": "2024-07-31"},
+        {"phase": 2, "name": "Plant-wise Inspections",  "status": "Completed", "end": "2024-10-31"},
+        {"phase": 3, "name": "Report & Remediation",    "status": "Completed", "end": "2024-12-31"}
+      ]
+    },
+    {
+      "id": "P003", "name": "Project Helix", "dept": "D003", "start": "2025-01-10", "end": "2025-12-31",
+      "status": "Active", "lead": "Rohit Desai", "budget": 2800000, "spent": 980000,
+      "description": "Vendor consolidation and cost optimisation across raw material supply chain. Target 12% cost reduction.",
+      "phases": [
+        {"phase": 1, "name": "Vendor Assessment",       "status": "Completed", "end": "2025-03-31"},
+        {"phase": 2, "name": "Contract Renegotiation",  "status": "Active",    "end": "2025-07-31"},
+        {"phase": 3, "name": "New Vendor Onboarding",   "status": "Pending",   "end": "2025-12-31"}
+      ]
+    },
+    {
+      "id": "P004", "name": "Project Horizon", "dept": "D008", "start": "2025-06-01", "end": "2026-07-31",
+      "status": "Active", "lead": "Arjun Menon", "budget": 1800000, "spent": 420000,
+      "description": "Digital transformation: ERP upgrade, local AI knowledge assistant (intern project), and IoT integration in Thane plant.",
+      "phases": [
+        {"phase": 1, "name": "ERP Assessment",           "status": "Completed", "end": "2025-08-31"},
+        {"phase": 2, "name": "AI Knowledge Assistant",   "status": "Active",    "end": "2026-07-31"},
+        {"phase": 3, "name": "IoT Sensor Integration",   "status": "Pending",   "end": "2026-12-31"}
+      ]
+    },
+    {
+      "id": "P005", "name": "Project Cerenity", "dept": "D001", "start": "2024-09-01", "end": "2026-03-31",
+      "status": "Active", "lead": "Neeraj Sharma", "budget": 3200000, "spent": 1650000,
+      "description": "Development of Hawkins Cerenity stainless steel premium pressure cooker line with spring-collection finish.",
+      "phases": [
+        {"phase": 1, "name": "Design & Material Selection", "status": "Completed", "end": "2025-01-31"},
+        {"phase": 2, "name": "Prototype & Tooling",         "status": "Active",    "end": "2025-09-30"},
+        {"phase": 3, "name": "Production Launch",           "status": "Pending",   "end": "2026-03-31"}
+      ]
+    }
+  ],
+
+  "pressure_cooker_products": [
+    {"id": "PC001", "brand": "Hawkins Classic",   "model": "CL 15",  "capacity_L": 1.5, "code": "CL 15",   "mrp": 1250, "material": "Aluminium", "induction": false, "desc": "Pure virgin aluminium, mirror polished, base 3.25mm"},
+    {"id": "PC002", "brand": "Hawkins Classic",   "model": "CL 20",  "capacity_L": 2.0, "code": "CL 20",   "mrp": 1425, "material": "Aluminium", "induction": false, "desc": "Pure virgin aluminium, improved pressure regulator"},
+    {"id": "PC003", "brand": "Hawkins Classic",   "model": "CL 3T",  "capacity_L": 3.0, "code": "CL 3T",   "mrp": 1675, "material": "Aluminium", "induction": false, "desc": "Tall body, super-fast cooking"},
+    {"id": "PC004", "brand": "Hawkins Classic",   "model": "CL 40",  "capacity_L": 4.0, "code": "CL 40",   "mrp": 2025, "material": "Aluminium", "induction": false, "desc": "4L classic, best seller"},
+    {"id": "PC005", "brand": "Hawkins Classic",   "model": "CL 50",  "capacity_L": 5.0, "code": "CL 50",   "mrp": 2275, "material": "Aluminium", "induction": false, "desc": "5L with aluminium separators option"},
+    {"id": "PC006", "brand": "Hawkins Classic",   "model": "CL 12",  "capacity_L": 12.0,"code": "CL 12",   "mrp": 3700, "material": "Aluminium", "induction": false, "desc": "Large family size"},
+    {"id": "PC007", "brand": "Hawkins Instaa",    "model": "IIH 15", "capacity_L": 1.5, "code": "IIH 15",  "mrp": 1725, "material": "Aluminium", "induction": true,  "desc": "Induction compatible, 1.5L"},
+    {"id": "PC008", "brand": "Hawkins Instaa",    "model": "IIH 2T", "capacity_L": 2.0, "code": "IIH 2T",  "mrp": 2100, "material": "Aluminium", "induction": true,  "desc": "Induction compatible, tall body"},
+    {"id": "PC009", "brand": "Hawkins Instaa",    "model": "IIH 50", "capacity_L": 5.0, "code": "IIH 50",  "mrp": 3325, "material": "Aluminium", "induction": true,  "desc": "5L induction, high capacity"},
+    {"id": "PC010", "brand": "Hawkins Contura",   "model": "HC 15",  "capacity_L": 1.5, "code": "HC 15",   "mrp": 1275, "material": "Aluminium", "induction": false, "desc": "Curved body, ceramic nonstick inside, 36% less oil"},
+    {"id": "PC011", "brand": "Hawkins Contura",   "model": "HC 30",  "capacity_L": 3.0, "code": "HC 30",   "mrp": 1875, "material": "Aluminium", "induction": false, "desc": "Revolutionary easy stirring, better visibility"},
+    {"id": "PC012", "brand": "Hawkins Tri-Ply",   "model": "IH 20",  "capacity_L": 2.0, "code": "IH 20",   "mrp": 1800, "material": "Stainless Steel Tri-Ply", "induction": true, "desc": "3mm Tri-Ply SS, 18/8 food-grade, gas+induction"},
+    {"id": "PC013", "brand": "Hawkins Tri-Ply",   "model": "IH 50",  "capacity_L": 5.0, "code": "IH 50",   "mrp": 2825, "material": "Stainless Steel Tri-Ply", "induction": true, "desc": "5L Tri-Ply, safe for deep frying before pressure"},
+    {"id": "PC014", "brand": "Hawkins Hevibase",  "model": "FSS 40", "capacity_L": 4.0, "code": "FSS 40",  "mrp": 4875, "material": "Stainless Steel", "induction": true, "desc": "7mm thick base, 4.9mm aluminium disc, premium"},
+    {"id": "PC015", "brand": "Futura",            "model": "FPC SS", "capacity_L": 4.0, "code": "FPC SS",  "mrp": 4875, "material": "Stainless Steel", "induction": true, "desc": "Futura form in SS, 7mm base"},
+    {"id": "PC016", "brand": "Futura",            "model": "FPC HA", "capacity_L": 5.0, "code": "FPC HA",  "mrp": 3999, "material": "Hard Anodised",   "induction": true, "desc": "Hard anodised Futura, non-toxic efficient heat"},
+    {"id": "PC017", "brand": "Hawkins Contura Black", "model": "CB 30", "capacity_L": 3.0, "code": "CB 30", "mrp": 2150, "material": "Aluminium", "induction": false, "desc": "Black ceramic coating, scratch and stain resistant"},
+    {"id": "PC018", "brand": "Hawkins Bigboy",    "model": "BB 14",  "capacity_L": 14.0,"code": "BB 14",   "mrp": 5500, "material": "Aluminium", "induction": false, "desc": "14L commercial/large family size, BigBoy"},
+    {"id": "PC019", "brand": "Hawkins Bigboy",    "model": "BB 22",  "capacity_L": 22.0,"code": "BB 22",   "mrp": 7200, "material": "Aluminium", "induction": false, "desc": "22L commercial, requires large burner"},
+    {"id": "PC020", "brand": "Miss Mary",         "model": "MM 3",   "capacity_L": 3.0, "code": "MM 3",    "mrp": 1650, "material": "Aluminium", "induction": false, "desc": "Miss Mary range, trusted family cooker"},
+    {"id": "PC021", "brand": "Hawkins Ventura",   "model": "VT 3",   "capacity_L": 3.0, "code": "VT 3",    "mrp": 2100, "material": "Aluminium", "induction": false, "desc": "Ventura, includes 21 tested recipes manual"},
+    {"id": "PC022", "brand": "Hawkins Cerenity",  "model": "CER 3",  "capacity_L": 3.0, "code": "CER 3",   "mrp": 3500, "material": "Stainless Steel", "induction": true, "desc": "Spring collection, premium Cerenity SS range"}
+  ],
+
+  "cookware_products": [
+    {"id": "CW001", "brand": "Futura Hard Anodised", "type": "Tava",         "code": "AT 24",     "diameter_cm": 24, "thickness_mm": 4.88, "mrp": 1000, "induction": false, "desc": "Stay-cool handles, heats fast evenly"},
+    {"id": "CW002", "brand": "Futura Hard Anodised", "type": "Tava",         "code": "AT 26X",    "diameter_cm": 26, "thickness_mm": 6.35, "mrp": 1225, "induction": false, "desc": "Extra-thick 6.35mm, maximise induction contact"},
+    {"id": "CW003", "brand": "Futura Hard Anodised", "type": "Roti Tava",    "code": "IART 24",   "diameter_cm": 24, "thickness_mm": 4.88, "mrp": 1125, "induction": true,  "desc": "Designed for perfect rotis on gas or induction"},
+    {"id": "CW004", "brand": "Futura Hard Anodised", "type": "Flat Tava",    "code": "AFT 26",    "diameter_cm": 26, "thickness_mm": 4.88, "mrp": 1200, "induction": false, "desc": "For uttapams and pancakes, rim contains batter"},
+    {"id": "CW005", "brand": "Futura Hard Anodised", "type": "Frying Pan",   "code": "AF 17",     "diameter_cm": 17, "thickness_mm": 4.06, "mrp": 900,  "induction": false, "desc": "4.06mm HA, cook without burning"},
+    {"id": "CW006", "brand": "Futura Hard Anodised", "type": "Deep Fry Pan", "code": "AD 25S",    "capacity_L": 2.5, "thickness_mm": 4.06, "mrp": 2075, "induction": false, "desc": "Flat bottom, stable on gas/electric/halogen"},
+    {"id": "CW007", "brand": "Futura Hard Anodised", "type": "Kadhai",       "code": "AK 15S",    "capacity_L": 1.5, "thickness_mm": 3.25, "mrp": 1425, "induction": false, "desc": "Round bottom, less oil, curved sides"},
+    {"id": "CW008", "brand": "Futura Hard Anodised", "type": "Handi",        "code": "AH 3L",     "capacity_L": 3.0, "thickness_mm": 4.06, "mrp": 1875, "induction": false, "desc": "Condensation lid tenderises food inside"},
+    {"id": "CW009", "brand": "Futura Hard Anodised", "type": "Bigboy Biryani Handi", "code": "ABH 10", "capacity_L": 10.0, "thickness_mm": 4.06, "mrp": 3800, "induction": false, "desc": "Unique curved body, large family/catering"},
+    {"id": "CW010", "brand": "Futura Nonstick",      "type": "Tava",         "code": "NT 22",     "diameter_cm": 22, "thickness_mm": 3.0,  "mrp": 950,  "induction": false, "desc": "3-coat PFOA-free nonstick, low oil cooking"},
+    {"id": "CW011", "brand": "Futura Nonstick",      "type": "Dosa Tava",    "code": "NDT 28",    "diameter_cm": 28, "thickness_mm": 3.0,  "mrp": 1200, "induction": false, "desc": "Perfect dosas, large surface"},
+    {"id": "CW012", "brand": "Futura Nonstick",      "type": "Flat Tava",    "code": "NFT 26",    "diameter_cm": 26, "thickness_mm": 3.0,  "mrp": 1050, "induction": false, "desc": "Flat tava for crepes, pancakes"},
+    {"id": "CW013", "brand": "Futura Nonstick",      "type": "Frying Pan",   "code": "NF 17S",    "diameter_cm": 17, "thickness_mm": 3.0,  "mrp": 900,  "induction": false, "desc": "Minimal oil, eggs and omelettes"},
+    {"id": "CW014", "brand": "Futura Nonstick",      "type": "Uttapam Pan",  "code": "NUPE 20",   "diameter_cm": 20, "thickness_mm": 3.0,  "mrp": 1325, "induction": false, "desc": "12 cups, perfect uttapams"},
+    {"id": "CW015", "brand": "Futura Nonstick",      "type": "Bigboy Biryani Handi", "code": "NBH 10", "capacity_L": 10.0, "thickness_mm": 3.0, "mrp": 3500, "induction": false, "desc": "Nonstick version of Bigboy"},
+    {"id": "CW016", "brand": "Futura Pro Nonstick",  "type": "Frying Pan",   "code": "NPF 22",    "diameter_cm": 22, "thickness_mm": 3.0,  "mrp": 1450, "induction": true,  "desc": "Pro nonstick, works on induction too"},
+    {"id": "CW017", "brand": "Hawkins Ceramic Nonstick", "type": "Tava",     "code": "ICT 24",    "diameter_cm": 24, "thickness_mm": 4.88, "mrp": 1225, "induction": true,  "desc": "German ceramic nonstick, no PTFE/PFOA/PFAS"},
+    {"id": "CW018", "brand": "Hawkins Ceramic Nonstick", "type": "Frying Pan","code": "ICF 16",   "diameter_cm": 16, "thickness_mm": 3.25, "mrp": 1075, "induction": true,  "desc": "Ceramic frying pan, guaranteed 5 years"},
+    {"id": "CW019", "brand": "Hawkins Ceramic Nonstick", "type": "Deep Kadhai","code": "ICK 175G", "capacity_L": 1.75,"thickness_mm": 3.25,"mrp": 1800, "induction": true,  "desc": "With toughened glass lid"},
+    {"id": "CW020", "brand": "Hawkins Tri-Ply SS",   "type": "Frying Pan",   "code": "PSF 22",    "diameter_cm": 22, "thickness_mm": 3.0,  "mrp": 1750, "induction": true,  "desc": "3mm Tri-Ply, curved deeper sides, no-drip flange"},
+    {"id": "CW021", "brand": "Hawkins Tri-Ply SS",   "type": "Handi",        "code": "SSH 30G",   "capacity_L": 3.0, "thickness_mm": 3.0,  "mrp": 2350, "induction": true,  "desc": "With toughened glass lid, 18/8 food-grade SS"},
+    {"id": "CW022", "brand": "Hawkins Tri-Ply SS",   "type": "Kadhai",       "code": "SSK 40G",   "capacity_L": 4.0, "thickness_mm": 3.0,  "mrp": 2925, "induction": true,  "desc": "Deep kadhai, glass lid, tri-ply construction"},
+    {"id": "CW023", "brand": "Hawkins SS Sandwich",  "type": "TPAN",         "code": "SST 20",    "capacity_L": 2.0, "thickness_mm": 4.7,  "mrp": 1275, "induction": true,  "desc": "Extra-thick sandwich bottom, 3-layer construction"},
+    {"id": "CW024", "brand": "Hawkins Tri-Ply Metro","type": "Patila",       "code": "SSP 25",    "capacity_L": 2.5, "thickness_mm": 2.5,  "mrp": 1200, "induction": true,  "desc": "Stackable, unique elliptical rim, no-drip pour"},
+    {"id": "CW025", "brand": "Hawkins Die-Cast",     "type": "Grill Pan",    "code": "DCGP 30G",  "diagonal_cm": 30, "thickness_mm": 3.0,  "mrp": 2100, "induction": true,  "desc": "Precision-cast ridges, 3-coat durable nonstick"},
+    {"id": "CW026", "brand": "Hawkins Die-Cast",     "type": "Multi Snack Pan","code":"DCMS 30G",  "diagonal_cm": 30, "thickness_mm": 3.0,  "mrp": 1800, "induction": true,  "desc": "Cook 5 snacks at once"},
+    {"id": "CW027", "brand": "Hawkins Die-Cast",     "type": "Pizza Maker",  "code": "NAPE 24G",  "diameter_cm": 24, "thickness_mm": 3.0,  "mrp": 1775, "induction": false, "desc": "12 cups pizza maker and cake baker"},
+    {"id": "CW028", "brand": "Futura Cast Iron",     "type": "Frying Pan",   "code": "CIF 25",    "diameter_cm": 25, "thickness_mm": 5.0,  "mrp": 2200, "induction": true,  "desc": "Pre-seasoned vegetable oil, naturally nonstick"},
+    {"id": "CW029", "brand": "Futura Cast Iron",     "type": "Kadhai",       "code": "CIK 25",    "capacity_L": 2.5, "thickness_mm": 5.0,  "mrp": 2800, "induction": true,  "desc": "Reinforced cast iron, retains heat, crispy food"},
+    {"id": "CW030", "brand": "Ironman Cast Iron",    "type": "Wok",          "code": "IM WOK",    "diameter_cm": 28, "thickness_mm": 4.0,  "mrp": 2500, "induction": true,  "desc": "Slim cast iron wok, high heat compatible"},
+    {"id": "CW031", "brand": "Hawkins Aqua",         "type": "Ceramic Idli Stand", "code": "UID 5", "capacity": "12 idlis", "mrp": 650, "induction": false, "desc": "Aqua ceramic, 12 idlis in 6 minutes"},
+    {"id": "CW032", "brand": "Hawkins",              "type": "Mini Casserole","code": "MCSR 75",  "capacity_L": 0.75,"thickness_mm": 5.0,  "mrp": 925,  "induction": true,  "desc": "Die-cast mini casserole, oval/round/square series"},
+    {"id": "CW033", "brand": "Futura",               "type": "Saucepan",     "code": "AH 20",     "capacity_L": 2.0, "thickness_mm": 4.06, "mrp": 1500, "induction": false, "desc": "Hard anodised handi saucepan"},
+    {"id": "CW034", "brand": "Hawkins Quik",         "type": "Deep Kadhai",  "code": "IQK 20S",   "capacity_L": 2.0, "thickness_mm": 3.0,  "mrp": 1400, "induction": true,  "desc": "QUIK cookware range, quick heating"},
+    {"id": "CW035", "brand": "Que Cera Cera",        "type": "Ceramic Kadhai","code": "QCC K",    "capacity_L": 2.5, "thickness_mm": 3.0,  "mrp": 1800, "induction": true,  "desc": "Que Cera Cera ceramic cookware"}
+  ],
+
+  "kitchen_electricals": [
+    {"id": "KE001", "brand": "Futura",    "type": "Electronic Kettle with Microchip", "code": "FKTA 1", "capacity_L": 1.4, "mrp": 2750, "desc": "Sets exact temperature, hold for hours, unique steam mode, 360 swivel base"},
+    {"id": "KE002", "brand": "Futura",    "type": "Electric Glass Kettle",            "code": "FKTB 1", "capacity_L": 1.8, "mrp": 1975, "desc": "Stay warm, easy-release lid, fine mesh spout, LED illumination, crystal clear"},
+    {"id": "KE003", "brand": "Futura",    "type": "Dual Hob Induction Cooktop",       "code": "FIC2A1", "wattage": "3600W max", "mrp": 11900, "desc": "20 power settings, timer, child lock, overheat protection, dual zone"},
+    {"id": "KE004", "brand": "Futura",    "type": "Single Hob Induction Cooktop",     "code": "FIC1A1", "wattage": "2000W max", "mrp": 5600,  "desc": "20 settings, precise control, residual heat indicator"},
+    {"id": "KE005", "brand": "Futura",    "type": "Smartpot",                         "code": "FSP1W",  "capacity_L": 2.0, "mrp": 7500, "desc": "Smart app control, fry/saute/boil/steam/poach/simmer/thaw/slow cook, auto rice"},
+    {"id": "KE006", "brand": "Hawkins",   "type": "Fuel Saver Gas Stove",             "code": "FGAS1",  "burners": 2,      "mrp": 4500, "desc": "Fuel saving design, ideal for use with Hawkins pressure cookers"}
+  ],
+
+  "accessories": [
+    {"id": "AC001", "type": "Idli Stand",          "code": "ID 12S",  "mrp": 335, "desc": "12 idlis, aluminium, works in 5L cooker"},
+    {"id": "AC002", "type": "Idli Stand",          "code": "ID 18L",  "mrp": 550, "desc": "18 idlis, aluminium, works in 6.5L cooker"},
+    {"id": "AC003", "type": "SS Idli Stand",       "code": "SSID 5",  "mrp": 600, "desc": "Stainless steel, 12 idlis, 5L cooker"},
+    {"id": "AC004", "type": "Repair Kit 3L",       "code": "RK 3",    "mrp": 350, "desc": "Sealing ring, gasket, pressure regulator for 3L cookers"},
+    {"id": "AC005", "type": "Repair Kit 5L",       "code": "RK 5",    "mrp": 420, "desc": "Complete repair kit, only a screwdriver needed"},
+    {"id": "AC006", "type": "Two-Dish Set",        "code": "2DS",     "mrp": 550, "desc": "Cook 2 dishes simultaneously in pressure cooker"},
+    {"id": "AC007", "type": "Three-Dish Set",      "code": "3DS",     "mrp": 750, "desc": "Cook 3 dishes simultaneously, save time and fuel"},
+    {"id": "AC008", "type": "Bamboo Spatula Set",  "code": "BSPTL3N", "mrp": 200, "desc": "Set of 3, eco-friendly, safe for nonstick surfaces"}
+  ],
+
+  "gift_packs": [
+    {"id": "GP001", "name": "Mini Casserole Gift Pack",         "code": "DGP 3",   "mrp": 2775, "contains": "3 Square Mini Casseroles 0.75L (Red, Grey, Yellow)"},
+    {"id": "GP002", "name": "Quik Frying Pan Set",             "code": "IQFS",    "mrp": 2900, "contains": "3 Frying Pans 20cm, 23cm, 26cm"},
+    {"id": "GP003", "name": "Quik Gift Set",                   "code": "IQGP1",   "mrp": 3250, "contains": "2L Deep Kadhai + 2L Saucepan + 20cm Frying Pan"},
+    {"id": "GP004", "name": "Hard Anodised Gift Pack",         "code": "HAGP",    "mrp": 3075, "contains": "17cm Frying Pan + 1.5L Kadhai with Lid + 22cm Tava"},
+    {"id": "GP005", "name": "Nonstick Gift Pack",              "code": "NSGP",    "mrp": 3625, "contains": "17cm Frying Pan with Lid + 2L Stir-Fry Pan + 22cm Tava"},
+    {"id": "GP006", "name": "Tri-Ply Metro Patila Gift Pack",  "code": "SGP",     "mrp": 3875, "contains": "3 Metro Patila 1.5L + 2L + 2.5L"},
+    {"id": "GP007", "name": "Ceramic Nonstick Gift Pack",      "code": "ICGP",    "mrp": 3500, "contains": "16cm Frying Pan + 1.75L Kadhai + 24cm Tava"},
+    {"id": "GP008", "name": "Triniti Kitchen Set",             "code": "TRINITI", "mrp": 5500, "contains": "Tri-Ply Handi + Frying Pan + Kadhai premium set"}
+  ],
+
+  "cookbooks_manuals": [
+    {"id": "CB001", "title": "All Indian Cookbook",                "code": "AllIndianCookbook",  "pages": 100, "type": "Cookbook",           "desc": "Comprehensive Indian recipes for pressure cooker cooking", "content_extracted": false},
+    {"id": "CB002", "title": "Miss Mary Cookbook",                 "code": "MissMary_Cookbook",  "pages": 52,  "type": "Cookbook",           "desc": "Classic Miss Mary recipes using Hawkins cookers. Opens with the standard 12-point Important Safeguards list (do not touch hot surfaces, supervise near children, never wash in dishwasher, vent weight placed only after steady steam, etc).", "content_extracted": true},
+    {"id": "CB003", "title": "Futura Pressure Cooker Manual (SS/HA)", "code": "FuturaPC_Eng",    "pages": 36,  "type": "Instruction Manual", "desc": "Operating instructions for Futura Stainless Steel and Hard Anodised pressure cookers. Covers water-fill rules by cooking time (1 cup for first 10 min, half cup per subsequent 10 min), dishwasher rules (SS body/grid only, never lid/ring/regulator), and Futura Cooking Tips on page 14.", "content_extracted": true},
+    {"id": "CB004", "title": "Hawkins Bigboy Instruction Manual",  "code": "Hawkins Bigboy",     "pages": 8,   "type": "Instruction Manual", "desc": "Special instructions for 14L, 18L, 22L BigBoy cookers. Requires large/commercial gas stove with flame-spreading ring-type burner, max 10,100 kcal/hr (40,000 btu/hr). Warns against direct contact with burning coal (aluminium melts at 660C vs coal's 1200C) - minimum 1 inch/2.5cm gap required. All 7 vent tube nut holes must be checked clear before use.", "content_extracted": true},
+    {"id": "CB005", "title": "Hawkins IC Classic Product Info",    "code": "Hawkins IC Classic", "pages": 2,   "type": "Product Information","desc": "Induction compatible Classic pressure cooker addendum. Usable on gas/induction/electric/halogen/ceramic/kerosene stoves. Induction setting must not exceed 1000W (1.5-3L) or 2000W (4-5L). Never dry-heat; cool 5 minutes naturally before releasing pressure via vent weight lift (not the cold-water-basin method).", "content_extracted": true},
+    {"id": "CB006", "title": "Hawkins Instaa Induction Info",      "code": "Hawkins Instaa",     "pages": 2,   "type": "Product Information","desc": "Additional safety and usage info for Instaa induction models. Same wattage/pre-heating limits as IC Classic (1000W small burner / 2000W big burner). Never put hot cooker in water - weakens base attachment over time. Reduce heat once Full Operating Pressure (FOP) is reached.", "content_extracted": true},
+    {"id": "CB007", "title": "Ventura Pressure Cooker Manual",     "code": "Ventura IM",         "pages": 62,  "type": "Instruction Manual", "desc": "Full manual with 21 tested recipes for Ventura cooker. Contains the master 21-point Important Safeguards list: 103 kPa (15 lbs/in2) operating pressure, two-thirds/half/one-third max fill rules by food type, list of foods that should never be pressure cooked (applesauce, cranberries, pearl barley, oatmeal, split peas, noodles, macaroni, rhubarb, spaghetti), and the genuine-parts-only repair policy.", "content_extracted": true},
+    {"id": "CB008", "title": "Futura Nonstick Bigboy Biryani Handi Manual", "code": "IM 102",    "pages": 27,  "type": "Instruction Manual", "desc": "Safety and usage for NS Bigboy Biryani Handi. Never dry-heat; never use on chulha or unregulated heat; never boil milk in it (skin forms and breaks when stirred); use wooden/silicone spatula only, never metal.", "content_extracted": true},
+    {"id": "CB009", "title": "Hawkins Ceramic Nonstick Cookware Manual", "code": "IM 107",       "pages": 32,  "type": "Instruction Manual", "desc": "Usage and care for Ceramic Nonstick range. German sol-gel ceramic coating, not recommended for high heat. Covers material grades for the full Hawkins/Futura range (290+ models): wrought aluminium 40800/31000 grade, die-cast LM6, SS Tri-Ply AISI 304/430.", "content_extracted": true},
+    {"id": "CB010", "title": "Futura Nonstick Flat Tava Manual",   "code": "IM 119",             "pages": 32,  "type": "Instruction Manual", "desc": "Flat tava instructions and recipes: Alu Paratha, Alu Tikki, Coconut Chutney, Dosa, French Toast, Fried Eggs, Paratha, Phulka, Rawa Dosa, Uttapam. Includes English/Hindi translations and a cooking glossary.", "content_extracted": true},
+    {"id": "CB011", "title": "Futura Nonstick Tava Manual",        "code": "IM 120",             "pages": 36,  "type": "Instruction Manual", "desc": "Tava instructions with recipes: Chana Dal Paratha, Welsh Griddle Cakes, Gobi Paratha, Makai ki Roti, Phulka, Paratha, Paneer Tikki, Puran Poli, Alu Paratha, Pudina Paratha. Covers roti-size guidance and paratha stuffing technique.", "content_extracted": true},
+    {"id": "CB012", "title": "Futura Hard Anodised Flat Tava Manual","code": "IM 121",           "pages": 28,  "type": "Instruction Manual", "desc": "HA Flat Tava care and usage. Recipes: Paratha, Uttapam, Dosa, Fried Eggs, Rawa Dosa, Coconut Chutney, Alu Tikki, Alu Paratha, French Toast, Pancakes. Recipe scaling guidance for 22cm tava.", "content_extracted": true},
+    {"id": "CB013", "title": "Hawkins SS Tri-Ply Cookware Manual", "code": "IM 136",             "pages": 28,  "type": "Instruction Manual", "desc": "Stainless Steel Tri-Ply care, dishwasher guidance, three-layer construction explainer (AISI 304 cooking surface, IS:21 aluminium core, AISI 430 induction base). Recipes by cookware piece: Tava-Dhania Paratha, Frying Pan-Sauteed Potatoes, Deep-Fry Pan-Kadhai Paneer, Handi-Dum Aloo, Metro Patila-Chawal ki Kheer, Tasla-Green Beans with Coconut.", "content_extracted": true},
+    {"id": "CB014", "title": "Futura HA Bigboy Biryani Handi Manual","code": "IM 140",           "pages": 24,  "type": "Instruction Manual", "desc": "Hard Anodised Bigboy manual with recipes: Chicken Biryani, Vegetable Biryani, Vegetable Korma, Dum Aloo, Dum Gosht, Chawal ki Kheer.", "content_extracted": true},
+    {"id": "CB015", "title": "Futura Nonstick Frying Pan Manual",  "code": "IM 143",             "pages": 32,  "type": "Instruction Manual", "desc": "Frying pan usage, care and recipes: Akuri (Parsi scrambled eggs), Alu Tikki, Besan Poora, French Toast, Fried Eggs, Hash Brown Potatoes, Country Omelette, Kheema Kebab, Pancakes, Uttapam.", "content_extracted": true},
+    {"id": "CB016", "title": "Futura Pro Nonstick Cookware Manual","code": "IM 145",             "pages": 20,  "type": "Instruction Manual", "desc": "Pro nonstick range usage guide. Recipes: Spaghetti Tandoori Style (Frying Pan), Malai Masala Prawns, Vegetable Amritsari (Deep-Fry Pan), Samosa.", "content_extracted": true},
+    {"id": "CB017", "title": "Futura Nonstick Uttapam Pan Manual", "code": "IM 71",              "pages": 18,  "type": "Instruction Manual", "desc": "Uttapam pan with South Indian recipes. Strict heat warning: never use high heat, max 4 minutes pre-heating on medium with up to 1 tbsp oil. Hawkins wooden spatula provided, no metal/sharp tools.", "content_extracted": true},
+    {"id": "CB018", "title": "Hawkins Mini Casserole Manual",      "code": "IM 82",              "pages": 12,  "type": "Instruction Manual", "desc": "Die-cast mini casserole usage and care. Guarantee No. IM 170. Recipes: Egg Bhurji, Moong Dal Khichdi.", "content_extracted": true},
+    {"id": "CB019", "title": "Cookware Catalog 2025",              "code": "CW_Catalog",         "pages": 64,  "type": "Product Catalog",    "desc": "Complete Hawkins cookware and kitchen electricals catalog 2025, tagline 'The Future of Cooking'. 32 product categories covering Tri-Ply, Ceramic Nonstick, Aqua, Die-Cast, Cast Iron, Futura ranges, gift sets, and a Toy Kitchen Set line.", "content_extracted": true},
+    {"id": "CB020", "title": "Pressure Cooker Catalog 2025",       "code": "PC_Catalog",         "pages": 44,  "type": "Product Catalog",    "desc": "Complete pressure cooker range catalog 2025, showing model counts per family (Classic 21, Contura 5, SS Tri-Ply 4, Instaa 9, Hevibase 6, Futura SS 2, Futura HA 13, Miss Mary 3, Handi 1, Ceramic Nonstick 10, Bigboy 4, Contura Black 7, Contura Black XT 7, Accessories 6). Opens with company history: inside-fitting lid design compared to a pressure-locked jetliner door.", "content_extracted": true},
+    {"id": "CB021", "title": "Pricelist June 2026",                "code": "PriceList",          "pages": 16,  "type": "Price List",         "desc": "Official MRP pricelist effective June 1, 2026, all products", "content_extracted": true}
+  ],
+
+  "vendors": [
+    {"id": "V001", "name": "Presstek Components Ltd",     "material": "Safety Valves & Pressure Regulators", "location": "Pune",            "contact": "Arun Mehta",    "email": "arun@presstek.com",       "contract_value": 1800000, "rating": 91, "since": 2010},
+    {"id": "V002", "name": "SteelForm Industries",        "material": "Aluminium Sheets & Blanks",           "location": "Nashik",          "contact": "Deepa Singh",   "email": "deepa@steelform.com",     "contract_value": 3200000, "rating": 87, "since": 2008},
+    {"id": "V003", "name": "SafeSeal Gaskets",            "material": "Rubber Gaskets & Sealing Rings",      "location": "Mumbai",          "contact": "Ravi Nair",     "email": "ravi@safeseal.com",       "contract_value": 950000,  "rating": 93, "since": 2012},
+    {"id": "V004", "name": "Tristar Metals Pvt Ltd",      "material": "Stainless Steel Coils 18/8",          "location": "Ahmedabad",       "contact": "Harish Modi",   "email": "harish@tristar.com",      "contract_value": 4100000, "rating": 89, "since": 2015},
+    {"id": "V005", "name": "CeraCoat Technologies",       "material": "Ceramic Nonstick Coating",            "location": "Pune",            "contact": "Smita Jain",    "email": "smita@ceracoat.com",      "contract_value": 2200000, "rating": 95, "since": 2018},
+    {"id": "V006", "name": "Rosewood Handles Co",         "material": "Rosewood & Bakelite Handles",         "location": "Nagpur",          "contact": "Prakash Rao",   "email": "prakash@rwhandles.com",   "contract_value": 680000,  "rating": 88, "since": 2009},
+    {"id": "V007", "name": "Packrite Cartons Ltd",        "material": "Full-colour Carton Packaging",        "location": "Thane",           "contact": "Asha Kulkarni", "email": "asha@packrite.com",       "contract_value": 1500000, "rating": 90, "since": 2011},
+    {"id": "V008", "name": "GermanCoat GmbH (India)",     "material": "High-quality German Ceramic Coating", "location": "Pune (India JV)", "contact": "Klaus Werner",  "email": "k.werner@germancoat.de", "contract_value": 3800000, "rating": 97, "since": 2019},
+    {"id": "V009", "name": "Ferro Alloys Karnataka",      "material": "Cast Iron Blanks",                    "location": "Bengaluru",       "contact": "Sunil Hegde",   "email": "sunil@ferroalloys.com",   "contract_value": 1200000, "rating": 85, "since": 2016},
+    {"id": "V010", "name": "UL Testing Labs India",       "material": "Third-party Safety Certification",    "location": "Bengaluru",       "contact": "Dr. Arvind",    "email": "arvind@ultestlabs.com",   "contract_value": 450000,  "rating": 99, "since": 2005}
+  ],
+
+  "policies": [
+    {"id": "POL001", "title": "Intern Leave and Conduct Policy",         "dept": "D004", "effective": "2024-01-01", "revision": "v3.0", "desc": "Governs leave entitlement (12 days per 6 months), working hours (9am-6pm), dress code, conduct rules, NDA requirements for all interns"},
+    {"id": "POL002", "title": "Vendor Approval and Onboarding Process",  "dept": "D003", "effective": "2023-06-15", "revision": "v2.1", "desc": "Step-by-step process for evaluating, approving and onboarding new vendors including financial checks, site visits and trial orders"},
+    {"id": "POL003", "title": "QC Inspection Standards Manual",          "dept": "D002", "effective": "2024-03-01", "revision": "v4.0", "desc": "Inspection criteria, defect classification (critical/major/minor), rejection thresholds, BIS/ISI compliance checklist"},
+    {"id": "POL004", "title": "IT Security and Data Handling Policy",    "dept": "D008", "effective": "2025-01-01", "revision": "v1.0", "desc": "Data classification, access controls, no data on personal devices, AI tools usage guidelines, local-only processing mandate"},
+    {"id": "POL005", "title": "Travel and Expense Reimbursement Policy", "dept": "D004", "effective": "2023-01-01", "revision": "v2.0", "desc": "Daily allowances by city tier, hotel limits, flight booking rules, advance request process"},
+    {"id": "POL006", "title": "Export Compliance and Documentation Policy","dept":"D010", "effective": "2022-06-01", "revision": "v1.5", "desc": "CE/UL marking requirements, country-specific regulations, EXIM documentation standards"},
+    {"id": "POL007", "title": "Environment Health and Safety Policy",    "dept": "D006", "effective": "2023-09-01", "revision": "v2.2", "desc": "Factory safety standards, PPE requirements, chemical handling, fire safety, incident reporting procedure"},
+    {"id": "POL008", "title": "Product Warranty and Service Policy",     "dept": "D009", "effective": "2024-06-01", "revision": "v1.3", "desc": "5-year guarantee on pressure cookers, authorised service centre network, repair kit policy, warranty claim process"}
+  ],
+
+  "audit_records": [
+    {"audit_id": "AUD001", "project_id": "P002", "plant": "F001", "date": "2024-08-15", "auditor": "Priya Mehta",   "finding": "3 critical defects in AC-3L batch QC-2024-041 — gasket misfit on 4.2% units", "status": "Resolved",           "resolution_date": "2024-09-01"},
+    {"audit_id": "AUD002", "project_id": "P001", "plant": "F001", "date": "2025-01-20", "auditor": "Neeraj Sharma", "finding": "Phase 2 approved — Aurora smart valve prototype passed 15-bar pressure test", "status": "Approved",          "resolution_date": "2025-01-20"},
+    {"audit_id": "AUD003", "project_id": "P003", "plant": "F002", "date": "2025-02-10", "auditor": "Rohit Desai",   "finding": "Presstek contract renewal recommended — performance score 91/100, no critical failures", "status": "Pending Approval", "resolution_date": null},
+    {"audit_id": "AUD004", "project_id": "P002", "plant": "F003", "date": "2024-10-05", "auditor": "Meena Pillai",  "finding": "Jaunpur plant — Futura HA tava coating thickness variance 0.3mm above spec on line 3", "status": "Resolved",          "resolution_date": "2024-10-20"},
+    {"audit_id": "AUD005", "project_id": "P005", "plant": "F001", "date": "2025-03-12", "auditor": "Neeraj Sharma", "finding": "Cerenity SS prototype spring-finish adhesion test passed. Tooling order approved.", "status": "Approved",          "resolution_date": "2025-03-12"},
+    {"audit_id": "AUD006", "project_id": "P004", "plant": "F001", "date": "2025-07-01", "auditor": "Arjun Menon",   "finding": "ERP assessment complete — SAP upgrade recommended over Oracle. Estimated cost Rs 85L.", "status": "Under Review",      "resolution_date": null}
+  ],
+
+  "invoices": [
+    {"invoice_no": "INV-2025-0031", "vendor_id": "V001", "amount": 450000,  "date": "2025-01-05", "status": "Paid",    "approved_by": "Vikram Patel"},
+    {"invoice_no": "INV-2025-0032", "vendor_id": "V002", "amount": 820000,  "date": "2025-01-12", "status": "Paid",    "approved_by": "Vikram Patel"},
+    {"invoice_no": "INV-2025-0033", "vendor_id": "V003", "amount": 237000,  "date": "2025-01-18", "status": "Pending", "approved_by": null},
+    {"invoice_no": "INV-2025-0034", "vendor_id": "V002", "amount": 910000,  "date": "2025-02-03", "status": "Paid",    "approved_by": "Vikram Patel"},
+    {"invoice_no": "INV-2025-0035", "vendor_id": "V004", "amount": 1250000, "date": "2025-02-14", "status": "Paid",    "approved_by": "Rohit Desai"},
+    {"invoice_no": "INV-2025-0036", "vendor_id": "V005", "amount": 680000,  "date": "2025-02-28", "status": "Paid",    "approved_by": "Vikram Patel"},
+    {"invoice_no": "INV-2025-0037", "vendor_id": "V008", "amount": 1100000, "date": "2025-03-10", "status": "Paid",    "approved_by": "Rohit Desai"},
+    {"invoice_no": "INV-2025-0038", "vendor_id": "V006", "amount": 175000,  "date": "2025-03-22", "status": "Pending", "approved_by": null},
+    {"invoice_no": "INV-2025-0039", "vendor_id": "V001", "amount": 490000,  "date": "2025-04-01", "status": "Paid",    "approved_by": "Vikram Patel"},
+    {"invoice_no": "INV-2025-0040", "vendor_id": "V009", "amount": 320000,  "date": "2025-04-15", "status": "Paid",    "approved_by": "Rohit Desai"}
+  ],
+
+  "production_log": [
+    {"month": "Jan-2025", "plant": "F001", "product_line": "Classic PC",      "units_produced": 42000, "units_rejected": 380, "defect_rate_pct": 0.90},
+    {"month": "Feb-2025", "plant": "F001", "product_line": "Classic PC",      "units_produced": 38500, "units_rejected": 310, "defect_rate_pct": 0.81},
+    {"month": "Mar-2025", "plant": "F001", "product_line": "Contura PC",      "units_produced": 29000, "units_rejected": 270, "defect_rate_pct": 0.93},
+    {"month": "Apr-2025", "plant": "F002", "product_line": "Futura HA Range", "units_produced": 31000, "units_rejected": 210, "defect_rate_pct": 0.68},
+    {"month": "May-2025", "plant": "F002", "product_line": "Tri-Ply SS",      "units_produced": 18000, "units_rejected": 190, "defect_rate_pct": 1.06},
+    {"month": "Jun-2025", "plant": "F003", "product_line": "Futura NS Range", "units_produced": 25000, "units_rejected": 220, "defect_rate_pct": 0.88},
+    {"month": "Jul-2025", "plant": "F003", "product_line": "Die-Cast Range",  "units_produced": 14000, "units_rejected": 170, "defect_rate_pct": 1.21},
+    {"month": "Aug-2025", "plant": "F001", "product_line": "Instaa PC",       "units_produced": 22000, "units_rejected": 195, "defect_rate_pct": 0.89},
+    {"month": "Sep-2025", "plant": "F002", "product_line": "Bigboy PC",       "units_produced": 8500,  "units_rejected": 95,  "defect_rate_pct": 1.12},
+    {"month": "Oct-2025", "plant": "F004", "product_line": "Cast Iron Range", "units_produced": 9000,  "units_rejected": 130, "defect_rate_pct": 1.44},
+    {"month": "Nov-2025", "plant": "F001", "product_line": "Classic PC",      "units_produced": 45000, "units_rejected": 390, "defect_rate_pct": 0.87},
+    {"month": "Dec-2025", "plant": "F001", "product_line": "Classic PC",      "units_produced": 48000, "units_rejected": 420, "defect_rate_pct": 0.88}
+  ],
+
+  "service_centres": [
+    {"id": "SC001", "city": "Mumbai",    "address": "Maker Tower F-101, Cuffe Parade",    "phone": "+91-22-22150861"},
+    {"id": "SC002", "city": "Delhi",     "address": "Connaught Place, New Delhi",          "phone": "+91-11-23410055"},
+    {"id": "SC003", "city": "Bengaluru", "address": "MG Road, Bengaluru",                  "phone": "+91-80-22110034"},
+    {"id": "SC004", "city": "Chennai",   "address": "Anna Salai, Chennai",                 "phone": "+91-44-28554411"},
+    {"id": "SC005", "city": "Kolkata",   "address": "Park Street, Kolkata",                "phone": "+91-33-22828800"},
+    {"id": "SC006", "city": "Hyderabad", "address": "Banjara Hills, Hyderabad",            "phone": "+91-40-23556677"},
+    {"id": "SC007", "city": "Pune",      "address": "FC Road, Pune",                       "phone": "+91-20-25534422"},
+    {"id": "SC008", "city": "Ahmedabad", "address": "CG Road, Ahmedabad",                  "phone": "+91-79-26445511"}
+  ],
+
+  "export_markets": [
+    {"region": "North America",  "countries": ["USA", "Canada"],                                  "key_product": "Futura HA, UL-listed Classic"},
+    {"region": "Europe",         "countries": ["UK", "Germany", "Netherlands", "France"],          "key_product": "Futura SS, CE certified range"},
+    {"region": "Middle East",    "countries": ["UAE", "Saudi Arabia", "Kuwait"],                   "key_product": "Classic, Bigboy"},
+    {"region": "Africa",         "countries": ["South Africa", "Kenya", "Nigeria"],                "key_product": "Classic, Miss Mary"},
+    {"region": "Asia Pacific",   "countries": ["Australia", "Singapore", "Malaysia"],              "key_product": "Futura, Ceramic Nonstick"},
+    {"region": "South America",  "countries": ["Brazil", "Argentina"],                             "key_product": "Classic, Ventura"}
+  ],
+
+  "catalog_2025_categories": [
+    "New Launches", "Electronic Kettle", "Hawkins Tri-Ply Stainless Steel Cookware",
+    "Tri-Ply Pro", "Tri-Ply Shielded Nonstick", "Tri-Ply Shielded Nonstick Pro", "Tri-Ply Metro Series",
+    "Hawkins Stainless Steel Sandwich Bottom", "Hawkins Ceramic Nonstick Cookware", "Hawkins Aqua Cookware",
+    "Hawkins Pressure Die-Cast Cookware", "Mini Casserole", "Pizza Maker & Cake Baker",
+    "Futura Cookware", "Cast Iron Range", "Nonstick Pro", "Tava (Griddles)", "Roti Tava",
+    "Flat Tava (Griddles)", "Dosa Tava", "Hard Anodised Frying Pans", "Nonstick Frying Pans",
+    "Hard Anodised Deep-Fry Pans", "Nonstick Deep-Fry Pans", "Saucepans",
+    "Cook n Serve Stewpots", "Cook n Serve Bowls & Casserole", "Futura Bigboy Biryani Handi",
+    "Cook n Serve Handi", "Toy Kitchen Set", "Cookware Gift Pack & Set", "Triniti Kitchen & Nonstick Cookware Sets"
+  ],
+
+  "instruction_manual_standard_sections": [
+    "Important Safeguards", "The Widest Range of High-Quality Cookware",
+    "Product Feature Introduction", "How to Use", "How to Clean",
+    "General Cooking Tips", "Recipes", "Guarantee Card"
+  ],
+
+  "cookware_care_standards": {
+    "ceramic_nonstick_origin": "Coating made in Germany using sol gel technology",
+    "ceramic_nonstick_heat_warning": "Not recommended for use on high heat; nonstick properties may reduce if used at high heat",
+    "dishwasher_safe": "Stainless Steel Tri-Ply is dishwasher safe; ceramic and standard nonstick ranges are hand-wash recommended",
+    "tri_ply_construction": "Three layers: AISI 304 Stainless Steel cooking surface, heat-diffusing aluminium core (IS:21 standard), AISI 430 magnetic induction-compatible base"
+  },
+
+  "product_specific_safeguards": [
+    {"product": "Hawkins Bigboy (14L/18L/22L)", "manual": "IM CB004", "key_warnings": ["Requires large/commercial gas stove, flame-spreading ring-type burner only", "Max burner output 10,100 kcal/hr (40,000 btu/hr)", "Never place directly on burning coal - aluminium melts at 660C vs coal's 1200C; keep 1 inch/2.5cm gap minimum", "All 7 vent tube nut holes must be checked clear before each use"]},
+    {"product": "Hawkins IC Classic (Induction)", "manual": "IM CB005", "key_warnings": ["Never dry-heat the cooker", "Induction setting must not exceed 1000W for 1.5-3L sizes or 2000W for 4-5L sizes", "Do not use cold-water-basin pressure release method; cool naturally 5 minutes then lift vent weight slightly"]},
+    {"product": "Hawkins Instaa (Induction)", "manual": "IM CB006", "key_warnings": ["Never dry-heat the cooker", "Do not put hot cooker in water - weakens base attachment over time", "Reduce heat once Full Operating Pressure (FOP) is reached"]},
+    {"product": "Futura Nonstick Bigboy Biryani Handi", "manual": "IM CB008", "key_warnings": ["Never dry-heat", "Never use on chulha or unregulated heat source", "Never boil milk - skin forms on base and breaks when stirred", "Use wooden/silicone spatula only, never metal or sharp objects"]},
+    {"product": "Futura Nonstick Uttapam Pan", "manual": "IM CB017", "key_warnings": ["Never use high heat - medium/low only", "Max 4 minutes pre-heating with up to 1 tbsp oil on medium, big burner", "Hawkins wooden spatula provided - no metal or sharp-edged tools"]},
+    {"product": "All Pressure Cookers (general)", "manual": "Ventura IM / Miss Mary Cookbook", "key_warnings": ["Operating pressure 103 kPa (15 lbs/in2)", "Max two-thirds full general fill; half full for expanding foods (rice, dried vegetables); one-third full for sprouting pulses/dal", "Never pressure-cook: applesauce, cranberries, pearl barley, oatmeal/cereals, split peas, noodles, macaroni, rhubarb, spaghetti", "Repairs limited to gasket, plastic handles, safety valve, pressure regulator - genuine Hawkins parts only, authorised service centre only"]}
+  ],
+
+  "historical_company_stats_from_pc_catalog": {
+    "note": "PC_Catalog.pdf reflects an earlier snapshot of company size than current figures in this world bible",
+    "offices": 2,
+    "factories": 3,
+    "employees": "~600",
+    "units_sold_worldwide": "130 million+",
+    "export_since": 1974
+  }
+}

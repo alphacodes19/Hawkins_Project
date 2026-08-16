@@ -14,9 +14,14 @@ import openpyxl
 from faker import Faker
 
 # ── config ───────────────────────────────────────────────────────────────────
-BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BIBLE_PATH = os.path.join(BASE_DIR, "world_bible.json")
-RAW        = os.path.join(BASE_DIR, "data", "raw")
+# world_bible.json now lives alongside this script (moved out of the
+# project root during a repo cleanup), so it's resolved relative to this
+# file's own directory. data/raw/ is still at the project root — that's a
+# separate, project-root-relative path, not a file-relative one.
+FILE_DIR     = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(FILE_DIR)
+BIBLE_PATH   = os.path.join(FILE_DIR, "world_bible.json")
+RAW          = os.path.join(PROJECT_ROOT, "data", "raw")
 
 fake = Faker("en_IN")
 random.seed(42)
